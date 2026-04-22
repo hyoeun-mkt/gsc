@@ -1,1 +1,546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>월간 GSC 리포트</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Malgun Gothic", sans-serif;
+      background: #07122d;
+      color: #ffffff;
+    }
+    .wrap {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 22px 40px;
+    }
+    .report-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 10px 0;
+    }
+    .report-sub {
+      font-size: 14px;
+      color: #cbd5e1;
+      margin-bottom: 24px;
+      line-height: 1.7;
+    }
+    .top-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .top-tab {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .top-tab.active {
+      background: rgba(99,102,241,0.20);
+      border-color: rgba(129,140,248,0.45);
+    }
+    .property-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .property-tab {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      border-radius: 999px;
+      padding: 9px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      min-width: 54px;
+    }
+    .property-tab.active {
+      background: #0f172a;
+      border-color: rgba(255,255,255,0.18);
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 20px;
+      min-height: 132px;
+    }
+    .card-label {
+      font-size: 14px;
+      color: #cbd5e1;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .card-value {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .card-delta {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .up { color: #16a34a; }
+    .down { color: #ef4444; }
+    .neutral { color: #94a3b8; }
+    .section {
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin: 0 0 16px 0;
+    }
+    .summary-box {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px 18px;
+      color: #fff;
+      font-weight: 700;
+    }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .chart-box {
+      background: rgba(255,255,255,0.04);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .chart-canvas-wrap {
+      position: relative;
+      height: 320px;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1180px;
+    }
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      text-align: center;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    th {
+      color: #cbd5e1;
+      font-weight: 800;
+      background: rgba(255,255,255,0.04);
+    }
+    td {
+      color: #fff;
+    }
+    .table-note {
+      margin-top: 12px;
+      color: #cbd5e1;
+      font-size: 13px;
+    }
+    .footer {
+      margin-top: 12px;
+      text-align: right;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+    @media (max-width: 1024px) {
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .cards { grid-template-columns: 1fr; }
+      .wrap { padding: 18px 14px 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="report-title">월간 GSC 리포트</h1>
+    <div class="report-sub">
+      기준 월: <span id="report-month">2026-02</span><br>
+      기간: <span id="report-period"> ~ </span><br>
+      생성일: 2026-04-22 20:28
+    </div>
 
+    <div class="top-tabs">
+      <a href="https://hyoeun-mkt.github.io/gsc/weekly_report/index.html" class="top-tab">주간</a>
+      <a href="javascript:void(0)" class="top-tab active">월간</a>
+    </div>
+
+    <div class="property-tabs">
+      <button class="property-tab active" data-property="root">root</button>
+      <button class="property-tab" data-property="www">www</button>
+      <button class="property-tab" data-property="m">m</button>
+      <button class="property-tab" data-property="trade">trade</button>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-label" id="clicks-label">클릭</div>
+        <div class="card-value" id="clicks-value">-</div>
+        <div class="card-delta" id="clicks-delta">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="impressions-label">노출</div>
+        <div class="card-value" id="impressions-value">-</div>
+        <div class="card-delta" id="impressions-delta">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="ctr-label">CTR</div>
+        <div class="card-value" id="ctr-value">-</div>
+        <div class="card-delta" id="ctr-delta">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="position-label">평균 순위</div>
+        <div class="card-value" id="position-value">-</div>
+        <div class="card-delta" id="position-delta">-</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">요약</h2>
+      <div class="summary-box" id="summary-text">-</div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">최근 12개월 추이</h2>
+      <div class="chart-grid">
+        <div class="chart-box">
+          <div class="chart-canvas-wrap">
+            <canvas id="chartClicks"></canvas>
+          </div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-canvas-wrap">
+            <canvas id="chartCtrPosition"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">월간 상세 데이터</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>month</th>
+              <th>start_date</th>
+              <th>end_date</th>
+              <th>클릭</th>
+              <th>노출</th>
+              <th>CTR</th>
+              <th>평균 순위</th>
+              <th>클릭 증감</th>
+              <th>노출 증감</th>
+              <th>CTR 변화</th>
+              <th>순위 변화</th>
+            </tr>
+          </thead>
+          <tbody id="detail-tbody"></tbody>
+        </table>
+      </div>
+      <div class="table-note">증감 및 변화는 전월 대비 수치</div>
+    </div>
+
+    <div class="footer">Generated by GSC automation</div>
+  </div>
+
+  <script>
+    const monthlyData = {"root": [{"title": "2026-03_root", "month": "2026-03", "start_date": "", "end_date": "", "property": "root", "clicks": 999028, "impressions": 2576273, "ctr": 0.38778033228621345, "position": 4.03, "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-10_root", "month": "2025-10", "start_date": "", "end_date": "", "property": "root", "clicks": 151105, "impressions": 929408, "ctr": 0.16258198767387413, "position": 5.01, "clicks_change": -0.8487479830395144, "impressions_change": -0.6392432013222201, "ctr_diff": -0.2251983446123393, "position_diff": 0.9799999999999995}, {"title": "2026-04_root", "month": "2026-04", "start_date": "", "end_date": "", "property": "root", "clicks": 364544, "impressions": 906446, "ctr": 0.40216846894354435, "position": 3.85, "clicks_change": 1.4125210946030906, "impressions_change": -0.02470604944222559, "ctr_diff": 0.23958648126967022, "position_diff": -1.1599999999999997}, {"title": "2026-01_root", "month": "2026-01", "start_date": "", "end_date": "", "property": "root", "clicks": 692329, "impressions": 1901622, "ctr": 0.3640728809405865, "position": 4.95, "clicks_change": 0.8991644355688202, "impressions_change": 1.0978877947500458, "ctr_diff": -0.03809558800295787, "position_diff": 1.1}, {"title": "2025-12_root", "month": "2025-12", "start_date": "", "end_date": "", "property": "root", "clicks": 633637, "impressions": 1793207, "ctr": 0.35335407457142426, "position": 4.71, "clicks_change": -0.08477472415571209, "impressions_change": -0.05701185619434357, "ctr_diff": -0.010718806369162226, "position_diff": -0.2400000000000002}, {"title": "2025-11_root", "month": "2025-11", "start_date": "", "end_date": "", "property": "root", "clicks": 208134, "impressions": 1258457, "ctr": 0.16538824926080112, "position": 5.16, "clicks_change": -0.6715248636048715, "impressions_change": -0.2982087399837275, "ctr_diff": -0.18796582531062314, "position_diff": 0.4500000000000002}, {"title": "2026-02_root", "month": "2026-02", "start_date": "", "end_date": "", "property": "root", "clicks": 851168, "impressions": 2260404, "ctr": 0.37655569535357397, "position": 4.65, "clicks_change": 3.089519252020333, "impressions_change": 0.7961710253111548, "ctr_diff": 0.21116744609277285, "position_diff": -0.5099999999999998}], "www": [{"title": "2025-12_www", "month": "2025-12", "start_date": "", "end_date": "", "property": "www", "clicks": 574400, "impressions": 1422720, "ctr": 0.4037336932073774, "position": 4.11, "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2026-04_www", "month": "2026-04", "start_date": "", "end_date": "", "property": "www", "clicks": 362716, "impressions": 879567, "ctr": 0.4123801825216271, "position": 3.81, "clicks_change": -0.3685306406685237, "impressions_change": -0.38177083333333334, "ctr_diff": 0.008646489314249717, "position_diff": -0.30000000000000027}, {"title": "2025-11_www", "month": "2025-11", "start_date": "", "end_date": "", "property": "www", "clicks": 140535, "impressions": 831171, "ctr": 0.16908073067996837, "position": 3.79, "clicks_change": -0.6125481092645486, "impressions_change": -0.05502252813031867, "ctr_diff": -0.24329945184165874, "position_diff": -0.020000000000000018}, {"title": "2026-01_www", "month": "2026-01", "start_date": "", "end_date": "", "property": "www", "clicks": 673978, "impressions": 1584357, "ctr": 0.4253952865421114, "position": 4.46, "clicks_change": 3.7958017575692886, "impressions_change": 0.9061745417008052, "ctr_diff": 0.256314555862143, "position_diff": 0.6699999999999999}, {"title": "2026-03_www", "month": "2026-03", "start_date": "", "end_date": "", "property": "www", "clicks": 992096, "impressions": 2465222, "ctr": 0.40243677851325355, "position": 3.95, "clicks_change": 0.4720005697515349, "impressions_change": 0.5559763361414126, "ctr_diff": -0.02295850802885785, "position_diff": -0.5099999999999998}, {"title": "2025-10_www", "month": "2025-10", "start_date": "", "end_date": "", "property": "www", "clicks": 2334, "impressions": 506812, "ctr": 0.004605257965478323, "position": 1.99, "clicks_change": -0.99764740508983, "impressions_change": -0.7944152696998485, "ctr_diff": -0.3978315205477752, "position_diff": -1.9600000000000002}, {"title": "2026-02_www", "month": "2026-02", "start_date": "", "end_date": "", "property": "www", "clicks": 840682, "impressions": 2048045, "ctr": 0.41048023847132264, "position": 4.28, "clicks_change": 359.18937446443874, "impressions_change": 3.0410349399777434, "ctr_diff": 0.4058749805058443, "position_diff": 2.29}], "m": [{"title": "2026-01_m", "month": "2026-01", "start_date": "", "end_date": "", "property": "m", "clicks": 3627, "impressions": 451542, "ctr": 0.00803247538434963, "position": 2.14, "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2026-03_m", "month": "2026-03", "start_date": "", "end_date": "", "property": "m", "clicks": 5057, "impressions": 206672, "ctr": 0.024468723387783543, "position": 4.31, "clicks_change": 0.3942652329749104, "impressions_change": -0.5422972835306572, "ctr_diff": 0.016436248003433913, "position_diff": 2.1699999999999995}, {"title": "2026-02_m", "month": "2026-02", "start_date": "", "end_date": "", "property": "m", "clicks": 3209, "impressions": 220706, "ctr": 0.014539704403142643, "position": 4.06, "clicks_change": -0.36543405180937316, "impressions_change": 0.06790469923356816, "ctr_diff": -0.0099290189846409, "position_diff": -0.25}, {"title": "2025-11_m", "month": "2025-11", "start_date": "", "end_date": "", "property": "m", "clicks": 4418, "impressions": 527525, "ctr": 0.00837495853277096, "position": 2.46, "clicks_change": 0.37675288251791833, "impressions_change": 1.3901706342374018, "ctr_diff": -0.006164745870371684, "position_diff": -1.5999999999999996}, {"title": "2025-10_m", "month": "2025-10", "start_date": "", "end_date": "", "property": "m", "clicks": 1405, "impressions": 372140, "ctr": 0.0037754608480679314, "position": 2.76, "clicks_change": -0.6819827976459937, "impressions_change": -0.2945547604378939, "ctr_diff": -0.004599497684703028, "position_diff": 0.2999999999999998}, {"title": "2025-12_m", "month": "2025-12", "start_date": "", "end_date": "", "property": "m", "clicks": 7010, "impressions": 682710, "ctr": 0.010267902916318789, "position": 2.39, "clicks_change": 3.9893238434163703, "impressions_change": 0.8345515128715, "ctr_diff": 0.006492442068250857, "position_diff": -0.36999999999999966}, {"title": "2026-04_m", "month": "2026-04", "start_date": "", "end_date": "", "property": "m", "clicks": 1240, "impressions": 68502, "ctr": 0.018101661265364517, "position": 3.82, "clicks_change": -0.8231098430813124, "impressions_change": -0.8996616425715165, "ctr_diff": 0.007833758349045728, "position_diff": 1.4299999999999997}], "trade": [{"title": "2026-02_trade", "month": "2026-02", "start_date": "", "end_date": "", "property": "trade", "clicks": 5957, "impressions": 191707, "ctr": 0.031073461062976312, "position": 7.4, "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-11_trade", "month": "2025-11", "start_date": "", "end_date": "", "property": "trade", "clicks": 11484, "impressions": 541021, "ctr": 0.02122653279632399, "position": 4.22, "clicks_change": 0.9278160147725365, "impressions_change": 1.822124387737537, "ctr_diff": -0.009846928266652323, "position_diff": -3.1800000000000006}, {"title": "2026-03_trade", "month": "2026-03", "start_date": "", "end_date": "", "property": "trade", "clicks": 460, "impressions": 17493, "ctr": 0.026296232778825816, "position": 8.18, "clicks_change": -0.9599442702890979, "impressions_change": -0.9676666894630708, "ctr_diff": 0.005069699982501827, "position_diff": 3.96}, {"title": "2026-04_trade", "month": "2026-04", "start_date": "", "end_date": "", "property": "trade", "clicks": 174, "impressions": 4747, "ctr": 0.03665472930271751, "position": 6.65, "clicks_change": -0.6217391304347826, "impressions_change": -0.728634310867204, "ctr_diff": 0.010358496523891692, "position_diff": -1.5299999999999994}, {"title": "2026-01_trade", "month": "2026-01", "start_date": "", "end_date": "", "property": "trade", "clicks": 12935, "impressions": 446500, "ctr": 0.02896976483762598, "position": 5.48, "clicks_change": 73.33908045977012, "impressions_change": 93.05940594059406, "ctr_diff": -0.007684964465091527, "position_diff": -1.17}, {"title": "2025-10_trade", "month": "2025-10", "start_date": "", "end_date": "", "property": "trade", "clicks": 8163, "impressions": 590109, "ctr": 0.013833037625252283, "position": 2.9, "clicks_change": -0.36892153073057593, "impressions_change": 0.3216326987681971, "ctr_diff": -0.015136727212373698, "position_diff": -2.5800000000000005}, {"title": "2025-12_trade", "month": "2025-12", "start_date": "", "end_date": "", "property": "trade", "clicks": 12691, "impressions": 453337, "ctr": 0.027994626514050255, "position": 4.7, "clicks_change": 0.5546980276858998, "impressions_change": -0.23177412986414375, "ctr_diff": 0.014161588888797972, "position_diff": 1.8000000000000003}]};
+    const chartDataMap = {"root": {"labels": ["2026-03", "2025-10", "2026-04", "2026-01", "2025-12", "2025-11", "2026-02"], "clicks": [999028, 151105, 364544, 692329, 633637, 208134, 851168], "impressions": [2576273, 929408, 906446, 1901622, 1793207, 1258457, 2260404], "ctr": [38.78, 16.26, 40.22, 36.41, 35.34, 16.54, 37.66], "position": [4.03, 5.01, 3.85, 4.95, 4.71, 5.16, 4.65]}, "www": {"labels": ["2025-12", "2026-04", "2025-11", "2026-01", "2026-03", "2025-10", "2026-02"], "clicks": [574400, 362716, 140535, 673978, 992096, 2334, 840682], "impressions": [1422720, 879567, 831171, 1584357, 2465222, 506812, 2048045], "ctr": [40.37, 41.24, 16.91, 42.54, 40.24, 0.46, 41.05], "position": [4.11, 3.81, 3.79, 4.46, 3.95, 1.99, 4.28]}, "m": {"labels": ["2026-01", "2026-03", "2026-02", "2025-11", "2025-10", "2025-12", "2026-04"], "clicks": [3627, 5057, 3209, 4418, 1405, 7010, 1240], "impressions": [451542, 206672, 220706, 527525, 372140, 682710, 68502], "ctr": [0.8, 2.45, 1.45, 0.84, 0.38, 1.03, 1.81], "position": [2.14, 4.31, 4.06, 2.46, 2.76, 2.39, 3.82]}, "trade": {"labels": ["2026-02", "2025-11", "2026-03", "2026-04", "2026-01", "2025-10", "2025-12"], "clicks": [5957, 11484, 460, 174, 12935, 8163, 12691], "impressions": [191707, 541021, 17493, 4747, 446500, 590109, 453337], "ctr": [3.11, 2.12, 2.63, 3.67, 2.9, 1.38, 2.8], "position": [7.4, 4.22, 8.18, 6.65, 5.48, 2.9, 4.7]}};
+
+    let currentProperty = "root";
+    let clicksChart = null;
+    let ctrPositionChart = null;
+
+    function fmtInt(v) {
+      if (v === null || v === undefined) return "-";
+      return Number(v).toLocaleString("ko-KR");
+    }
+
+    function fmtPct(v) {
+      if (v === null || v === undefined) return "-";
+      return (Number(v) * 100).toFixed(1) + "%";
+    }
+
+    function fmtNum(v, digits = 1) {
+      if (v === null || v === undefined) return "-";
+      return Number(v).toFixed(digits);
+    }
+
+    function deltaClass(value, reverse = false) {
+      if (value === null || value === undefined) return "neutral";
+
+      if (!reverse) {
+        if (value > 0) return "up";
+        if (value < 0) return "down";
+      } else {
+        if (value < 0) return "up";
+        if (value > 0) return "down";
+      }
+      return "neutral";
+    }
+
+    function fmtPctChange(v) {
+      if (v === null || v === undefined) return "—";
+      if (v > 0) return "▲ " + Math.abs(v * 100).toFixed(1) + "%";
+      if (v < 0) return "▼ " + Math.abs(v * 100).toFixed(1) + "%";
+      return "0.0%";
+    }
+
+    function fmtCtrDiff(v) {
+      if (v === null || v === undefined) return "—";
+      if (v > 0) return "▲ " + Math.abs(v * 100).toFixed(1) + "%p";
+      if (v < 0) return "▼ " + Math.abs(v * 100).toFixed(1) + "%p";
+      return "0.0%p";
+    }
+
+    function fmtPositionDiff(v) {
+      if (v === null || v === undefined) return "—";
+      if (v < 0) return "▲ 개선 " + Math.abs(v).toFixed(1);
+      if (v > 0) return "▼ 악화 " + Math.abs(v).toFixed(1);
+      return "유지";
+    }
+
+    function buildSummaryText(row) {
+      if (!row) return "데이터가 없습니다.";
+
+      const parts = [];
+
+      if (row.clicks_change !== null && row.clicks_change !== undefined) {
+        parts.push(row.clicks_change > 0 ? "클릭 증가" : row.clicks_change < 0 ? "클릭 감소" : "클릭 유지");
+      }
+      if (row.impressions_change !== null && row.impressions_change !== undefined) {
+        parts.push(row.impressions_change > 0 ? "노출 확대" : row.impressions_change < 0 ? "노출 감소" : "노출 유지");
+      }
+      if (row.ctr_diff !== null && row.ctr_diff !== undefined) {
+        parts.push(row.ctr_diff > 0 ? "CTR 상승" : row.ctr_diff < 0 ? "CTR 하락" : "CTR 유지");
+      }
+      if (row.position_diff !== null && row.position_diff !== undefined) {
+        parts.push(row.position_diff < 0 ? "평균 순위 개선" : row.position_diff > 0 ? "평균 순위 악화" : "평균 순위 유지");
+      }
+
+      return row.month + " 기준 " + parts.join(" · ");
+    }
+
+    function renderCards(rows) {
+      const latest = rows.length ? rows[rows.length - 1] : null;
+
+      document.getElementById("report-month").textContent = latest ? latest.month : "-";
+      document.getElementById("report-period").textContent = latest ? (latest.start_date + " ~ " + latest.end_date) : "-";
+
+      document.getElementById("clicks-label").textContent = latest ? latest.month + " 클릭" : "클릭";
+      document.getElementById("clicks-value").textContent = latest ? fmtInt(latest.clicks) : "-";
+      document.getElementById("clicks-delta").textContent = latest ? fmtPctChange(latest.clicks_change) : "-";
+      document.getElementById("clicks-delta").className = "card-delta " + (latest ? deltaClass(latest.clicks_change) : "neutral");
+
+      document.getElementById("impressions-label").textContent = latest ? latest.month + " 노출" : "노출";
+      document.getElementById("impressions-value").textContent = latest ? fmtInt(latest.impressions) : "-";
+      document.getElementById("impressions-delta").textContent = latest ? fmtPctChange(latest.impressions_change) : "-";
+      document.getElementById("impressions-delta").className = "card-delta " + (latest ? deltaClass(latest.impressions_change) : "neutral");
+
+      document.getElementById("ctr-label").textContent = latest ? latest.month + " CTR" : "CTR";
+      document.getElementById("ctr-value").textContent = latest ? fmtPct(latest.ctr) : "-";
+      document.getElementById("ctr-delta").textContent = latest ? fmtCtrDiff(latest.ctr_diff) : "-";
+      document.getElementById("ctr-delta").className = "card-delta " + (latest ? deltaClass(latest.ctr_diff) : "neutral");
+
+      document.getElementById("position-label").textContent = latest ? latest.month + " 평균 순위" : "평균 순위";
+      document.getElementById("position-value").textContent = latest ? fmtNum(latest.position, 1) : "-";
+      document.getElementById("position-delta").textContent = latest ? fmtPositionDiff(latest.position_diff) : "-";
+      document.getElementById("position-delta").className = "card-delta " + (latest ? deltaClass(latest.position_diff, true) : "neutral");
+
+      document.getElementById("summary-text").textContent = buildSummaryText(latest);
+    }
+
+    function renderTable(rows) {
+      const tbody = document.getElementById("detail-tbody");
+      tbody.innerHTML = "";
+
+      const sorted = [...rows].slice().reverse();
+
+      sorted.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.month}</td>
+          <td>${row.start_date}</td>
+          <td>${row.end_date}</td>
+          <td>${fmtInt(row.clicks)}</td>
+          <td>${fmtInt(row.impressions)}</td>
+          <td>${fmtPct(row.ctr)}</td>
+          <td>${fmtNum(row.position, 1)}</td>
+          <td class="${deltaClass(row.clicks_change)}">${fmtPctChange(row.clicks_change)}</td>
+          <td class="${deltaClass(row.impressions_change)}">${fmtPctChange(row.impressions_change)}</td>
+          <td class="${deltaClass(row.ctr_diff)}">${fmtCtrDiff(row.ctr_diff)}</td>
+          <td class="${deltaClass(row.position_diff, true)}">${fmtPositionDiff(row.position_diff)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function destroyCharts() {
+      if (clicksChart) clicksChart.destroy();
+      if (ctrPositionChart) ctrPositionChart.destroy();
+    }
+
+    function renderCharts(propertyName) {
+      destroyCharts();
+
+      const cData = chartDataMap[propertyName] || { labels: [], clicks: [], impressions: [], ctr: [], position: [] };
+
+      const ctx1 = document.getElementById("chartClicks").getContext("2d");
+      clicksChart = new Chart(ctx1, {
+        type: "bar",
+        data: {
+          labels: cData.labels,
+          datasets: [
+            {
+              type: "bar",
+              label: "Clicks",
+              data: cData.clicks,
+              backgroundColor: "rgba(96, 165, 250, 0.55)",
+              borderColor: "rgba(96, 165, 250, 1)",
+              borderWidth: 1,
+              yAxisID: "y"
+            },
+            {
+              type: "line",
+              label: "Impressions",
+              data: cData.impressions,
+              borderColor: "rgba(244, 114, 182, 1)",
+              backgroundColor: "rgba(244, 114, 182, 0.12)",
+              tension: 0.3,
+              yAxisID: "y1"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: "#ffffff" } }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#cbd5e1" },
+              grid: { color: "rgba(255,255,255,0.05)" }
+            },
+            y: {
+              position: "left",
+              ticks: { color: "#cbd5e1" },
+              grid: { color: "rgba(255,255,255,0.05)" },
+              title: { display: true, text: "Clicks", color: "#cbd5e1" }
+            },
+            y1: {
+              position: "right",
+              ticks: { color: "#cbd5e1" },
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: "Impressions", color: "#cbd5e1" }
+            }
+          }
+        }
+      });
+
+      const ctx2 = document.getElementById("chartCtrPosition").getContext("2d");
+      ctrPositionChart = new Chart(ctx2, {
+        type: "line",
+        data: {
+          labels: cData.labels,
+          datasets: [
+            {
+              label: "CTR (%)",
+              data: cData.ctr,
+              borderColor: "rgba(59, 130, 246, 1)",
+              backgroundColor: "rgba(59, 130, 246, 0.15)",
+              tension: 0.3,
+              yAxisID: "y"
+            },
+            {
+              label: "Position",
+              data: cData.position,
+              borderColor: "rgba(244, 63, 94, 1)",
+              backgroundColor: "rgba(244, 63, 94, 0.12)",
+              tension: 0.3,
+              yAxisID: "y1"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: "#ffffff" } }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#cbd5e1" },
+              grid: { color: "rgba(255,255,255,0.05)" }
+            },
+            y: {
+              position: "left",
+              ticks: { color: "#cbd5e1" },
+              grid: { color: "rgba(255,255,255,0.05)" },
+              title: { display: true, text: "CTR (%)", color: "#cbd5e1" }
+            },
+            y1: {
+              position: "right",
+              reverse: true,
+              ticks: { color: "#cbd5e1" },
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: "Position", color: "#cbd5e1" }
+            }
+          }
+        }
+      });
+    }
+
+    function renderProperty(propertyName) {
+      currentProperty = propertyName;
+      const rows = monthlyData[propertyName] || [];
+
+      document.querySelectorAll(".property-tab").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.property === propertyName);
+      });
+
+      renderCards(rows);
+      renderTable(rows);
+      renderCharts(propertyName);
+    }
+
+    document.querySelectorAll(".property-tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        renderProperty(btn.dataset.property);
+      });
+    });
+
+    renderProperty(currentProperty);
+  </script>
+</body>
+</html>
