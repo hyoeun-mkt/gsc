@@ -1,1 +1,565 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>주간 SEO 리포트</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Malgun Gothic", sans-serif;
+      background: #07122d;
+      color: #ffffff;
+    }
+    .wrap {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 22px 40px;
+    }
+    .report-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 10px 0;
+    }
+    .report-sub {
+      font-size: 14px;
+      color: #cbd5e1;
+      margin-bottom: 24px;
+      line-height: 1.7;
+    }
+    .top-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .top-tab {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .top-tab.active {
+      background: rgba(99,102,241,0.20);
+      border-color: rgba(129,140,248,0.45);
+    }
+    .property-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .property-tab {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      border-radius: 999px;
+      padding: 9px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      min-width: 54px;
+    }
+    .property-tab.active {
+      background: #0f172a;
+      border-color: rgba(255,255,255,0.18);
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 20px;
+      min-height: 132px;
+    }
+    .card-label {
+      font-size: 14px;
+      color: #cbd5e1;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .card-value {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .card-delta {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .up {
+      color: #ef4444;
+    }
+    .down {
+      color: #3b82f6;
+    }
+    .neutral {
+      color: #94a3b8;
+    }
+    .section {
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin: 0 0 16px 0;
+    }
+    .summary-box {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px 18px;
+      color: #fff;
+      font-weight: 700;
+    }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .chart-box {
+      background: rgba(255,255,255,0.04);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .chart-canvas-wrap {
+      position: relative;
+      height: 320px;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1220px;
+    }
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      text-align: center;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    th {
+      color: #cbd5e1;
+      font-weight: 800;
+      background: rgba(255,255,255,0.04);
+    }
+    td {
+      color: #fff;
+    }
+    .table-note {
+      margin-top: 12px;
+      color: #cbd5e1;
+      font-size: 13px;
+    }
+    .footer {
+      margin-top: 12px;
+      text-align: right;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+    @media (max-width: 1024px) {
+      .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 640px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+      .wrap {
+        padding: 18px 14px 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="report-title">주간 SEO 리포트</h1>
+    <div class="report-sub">
+      기준 주차: <span id="report-week">2026-W15</span><br>
+      기간: <span id="report-period">2026-04-06 ~ 2026-04-12</span><br>
+      생성일: 2026-04-22 20:17
+    </div>
 
+    <div class="top-tabs">
+      <a href="javascript:void(0)" class="top-tab active">주간</a>
+      <a href="https://hyoeun-mkt.github.io/gsc/monthly_report/index.html" class="top-tab">월간</a>
+    </div>
+
+    <div class="property-tabs">
+      <button class="property-tab active" data-property="root">root</button>
+      <button class="property-tab" data-property="www">www</button>
+      <button class="property-tab" data-property="m">m</button>
+      <button class="property-tab" data-property="trade">trade</button>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-label" id="clicks-label">클릭</div>
+        <div class="card-value" id="clicks-value">-</div>
+        <div class="card-delta" id="clicks-delta">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="impressions-label">노출</div>
+        <div class="card-value" id="impressions-value">-</div>
+        <div class="card-delta" id="impressions-delta">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="ctr-label">CTR</div>
+        <div class="card-value" id="ctr-value">-</div>
+        <div class="card-delta" id="ctr-delta">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="position-label">평균 순위</div>
+        <div class="card-value" id="position-value">-</div>
+        <div class="card-delta" id="position-delta">-</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">요약</h2>
+      <div class="summary-box" id="summary-text">-</div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">최근 12주 추이</h2>
+      <div class="chart-grid">
+        <div class="chart-box">
+          <div class="chart-canvas-wrap">
+            <canvas id="chartClicks"></canvas>
+          </div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-canvas-wrap">
+            <canvas id="chartCtrPosition"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">주간 상세 데이터</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>week</th>
+              <th>start_date</th>
+              <th>end_date</th>
+              <th>클릭</th>
+              <th>노출</th>
+              <th>CTR</th>
+              <th>평균 순위</th>
+              <th>클릭 증감</th>
+              <th>노출 증감</th>
+              <th>CTR 변화</th>
+              <th>순위 변화</th>
+            </tr>
+          </thead>
+          <tbody id="detail-tbody"></tbody>
+        </table>
+      </div>
+      <div class="table-note">증감 및 변화는 전주 대비 수치</div>
+    </div>
+
+    <div class="footer">Generated by GSC automation</div>
+  </div>
+
+  <script>
+    const weeklyDataCompleted = {"root": [{"title": "2025-W40_root", "week": "2025-W40", "start_date": "2025-09-29", "end_date": "2025-10-05", "property": "root", "clicks": 22756, "impressions": 135679, "ctr": 0.16771939651677858, "position": 4.597432525741798, "month": "2025-09", "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-W41_root", "week": "2025-W41", "start_date": "2025-10-06", "end_date": "2025-10-12", "property": "root", "clicks": 34844, "impressions": 211982, "ctr": 0.1643724467171741, "position": 4.908915992384833, "month": "2025-10", "clicks_change": 0.5312005624890139, "impressions_change": 0.5623788500799681, "ctr_diff": -0.0033469497996044817, "position_diff": 0.3114834666430353}, {"title": "2025-W42_root", "week": "2025-W42", "start_date": "2025-10-13", "end_date": "2025-10-19", "property": "root", "clicks": 33415, "impressions": 216296, "ctr": 0.15448736916077968, "position": 4.977619316014389, "month": "2025-10", "clicks_change": -0.04101136494087935, "impressions_change": 0.020350784500570804, "ctr_diff": -0.009885077556394423, "position_diff": 0.06870332362955534}, {"title": "2025-W43_root", "week": "2025-W43", "start_date": "2025-10-20", "end_date": "2025-10-26", "property": "root", "clicks": 34892, "impressions": 213225, "ctr": 0.1636393481064603, "position": 5.073473218814244, "month": "2025-10", "clicks_change": 0.044201705820739186, "impressions_change": -0.01419813588785738, "ctr_diff": 0.009151978945680622, "position_diff": 0.09585390279985528}, {"title": "2025-W44_root", "week": "2025-W44", "start_date": "2025-10-27", "end_date": "2025-11-02", "property": "root", "clicks": 37280, "impressions": 222065, "ctr": 0.16787877423276967, "position": 5.615911002544946, "month": "2025-10", "clicks_change": 0.06843975696434713, "impressions_change": 0.041458553171532415, "ctr_diff": 0.00423942612630937, "position_diff": 0.5424377837307022}, {"title": "2025-W45_root", "week": "2025-W45", "start_date": "2025-11-03", "end_date": "2025-11-09", "property": "root", "clicks": 34619, "impressions": 230438, "ctr": 0.1502312986573395, "position": 5.451413146032527, "month": "2025-11", "clicks_change": -0.07137875536480687, "impressions_change": 0.03770517641231171, "ctr_diff": -0.01764747557543017, "position_diff": -0.1644978565124191}, {"title": "2025-W46_root", "week": "2025-W46", "start_date": "2025-11-10", "end_date": "2025-11-16", "property": "root", "clicks": 42192, "impressions": 285588, "ctr": 0.14773729988654985, "position": 5.310124830919278, "month": "2025-11", "clicks_change": 0.21875270805049252, "impressions_change": 0.23932684713458718, "ctr_diff": -0.0024939987707896516, "position_diff": -0.14128831511324869}, {"title": "2025-W47_root", "week": "2025-W47", "start_date": "2025-11-17", "end_date": "2025-11-23", "property": "root", "clicks": 58998, "impressions": 333128, "ctr": 0.1771030955068322, "position": 5.059239942041331, "month": "2025-11", "clicks_change": 0.39832195676905574, "impressions_change": 0.16646357690099023, "ctr_diff": 0.029365795620282353, "position_diff": -0.25088488887794735}, {"title": "2025-W48_root", "week": "2025-W48", "start_date": "2025-11-24", "end_date": "2025-11-30", "property": "root", "clicks": 60243, "impressions": 339464, "ctr": 0.17746506256922678, "position": 4.611709568095214, "month": "2025-11", "clicks_change": 0.021102410251194956, "impressions_change": 0.01901971614514541, "ctr_diff": 0.0003619670623945803, "position_diff": -0.44753037394611717}, {"title": "2025-W49_root", "week": "2025-W49", "start_date": "2025-12-01", "end_date": "2025-12-07", "property": "root", "clicks": 83147, "impressions": 342328, "ctr": 0.2428869388422799, "position": 4.366239903787198, "month": "2025-12", "clicks_change": 0.3801935494580283, "impressions_change": 0.008436829825843093, "ctr_diff": 0.06542187627305313, "position_diff": -0.24546966430801564}, {"title": "2025-W50_root", "week": "2025-W50", "start_date": "2025-12-08", "end_date": "2025-12-14", "property": "root", "clicks": 171997, "impressions": 386789, "ctr": 0.444679140306472, "position": 4.281695129871602, "month": "2025-12", "clicks_change": 1.0685893658219778, "impressions_change": 0.12987836227244046, "ctr_diff": 0.20179220146419208, "position_diff": -0.08454477391559578}, {"title": "2025-W51_root", "week": "2025-W51", "start_date": "2025-12-15", "end_date": "2025-12-21", "property": "root", "clicks": 158782, "impressions": 430174, "ctr": 0.3691111038788955, "position": 5.006409460895297, "month": "2025-12", "clicks_change": -0.07683273545468816, "impressions_change": 0.11216709885751663, "ctr_diff": -0.07556803642757648, "position_diff": 0.7247143310236943}, {"title": "2025-W52_root", "week": "2025-W52", "start_date": "2025-12-22", "end_date": "2025-12-28", "property": "root", "clicks": 151607, "impressions": 437663, "ctr": 0.3464012265144643, "position": 5.0964204538788, "month": "2025-12", "clicks_change": -0.045187741683566145, "impressions_change": 0.017409234402823045, "ctr_diff": -0.022709877364431197, "position_diff": 0.0900109929835029}, {"title": "2026-W01_root", "week": "2026-W01", "start_date": "2025-12-29", "end_date": "2026-01-04", "property": "root", "clicks": 163301, "impressions": 464391, "ctr": 0.35164548839232457, "position": 5.055858946631738, "month": "2025-12", "clicks_change": 0.07713364158647028, "impressions_change": 0.061069818559028294, "ctr_diff": 0.005244261877860257, "position_diff": -0.040561507247061535}, {"title": "2026-W02_root", "week": "2026-W02", "start_date": "2026-01-05", "end_date": "2026-01-11", "property": "root", "clicks": 157577, "impressions": 437749, "ctr": 0.3599711250054255, "position": 5.476820069338779, "month": "2026-01", "clicks_change": -0.03505183679218131, "impressions_change": -0.05736975953453017, "ctr_diff": 0.008325636613100929, "position_diff": 0.4209611227070411}, {"title": "2026-W03_root", "week": "2026-W03", "start_date": "2026-01-12", "end_date": "2026-01-18", "property": "root", "clicks": 151919, "impressions": 412165, "ctr": 0.3685878228379411, "position": 4.428855924940796, "month": "2026-01", "clicks_change": -0.03590625535452509, "impressions_change": -0.05844445104386303, "ctr_diff": 0.008616697832515618, "position_diff": -1.0479641443979828}, {"title": "2026-W04_root", "week": "2026-W04", "start_date": "2026-01-19", "end_date": "2026-01-25", "property": "root", "clicks": 157940, "impressions": 434890, "ctr": 0.36317229644277865, "position": 4.6328419174517705, "month": "2026-01", "clicks_change": 0.0396329623022795, "impressions_change": 0.055135685951014764, "ctr_diff": -0.005415526395162462, "position_diff": 0.20398599251097416}, {"title": "2026-W05_root", "week": "2026-W05", "start_date": "2026-01-26", "end_date": "2026-02-01", "property": "root", "clicks": 150528, "impressions": 411428, "ctr": 0.36586717481552056, "position": 5.532440576884789, "month": "2026-01", "clicks_change": -0.04692921362542738, "impressions_change": -0.053949274529191286, "ctr_diff": 0.0026948783727419046, "position_diff": 0.8995986594330185}, {"title": "2026-W06_root", "week": "2026-W06", "start_date": "2026-02-02", "end_date": "2026-02-08", "property": "root", "clicks": 167566, "impressions": 460757, "ctr": 0.36367542978185896, "position": 5.204441534025096, "month": "2026-02", "clicks_change": 0.11318824404761904, "impressions_change": 0.11989704152366878, "ctr_diff": -0.0021917450336615962, "position_diff": -0.32799904285969284}, {"title": "2026-W07_root", "week": "2026-W07", "start_date": "2026-02-09", "end_date": "2026-02-15", "property": "root", "clicks": 216974, "impressions": 557448, "ctr": 0.3892273360026406, "position": 4.497501104629009, "month": "2026-02", "clicks_change": 0.29485695188761446, "impressions_change": 0.20985248189392675, "ctr_diff": 0.02555190622078163, "position_diff": -0.706940429396087}, {"title": "2026-W08_root", "week": "2026-W08", "start_date": "2026-02-16", "end_date": "2026-02-22", "property": "root", "clicks": 232211, "impressions": 631960, "ctr": 0.36744572441293755, "position": 4.278633060197001, "month": "2026-02", "clicks_change": 0.07022500391752007, "impressions_change": 0.13366627918657883, "ctr_diff": -0.021781611589703043, "position_diff": -0.2188680444320079}, {"title": "2026-W09_root", "week": "2026-W09", "start_date": "2026-02-23", "end_date": "2026-03-01", "property": "root", "clicks": 249612, "impressions": 646951, "ctr": 0.3858282930237375, "position": 4.153603863924589, "month": "2026-02", "clicks_change": 0.0749361572018552, "impressions_change": 0.02372143806570036, "ctr_diff": 0.018382568610799954, "position_diff": -0.12502919627241216}, {"title": "2026-W10_root", "week": "2026-W10", "start_date": "2026-03-02", "end_date": "2026-03-08", "property": "root", "clicks": 230940, "impressions": 602762, "ctr": 0.38313629591779175, "position": 4.082418004131411, "month": "2026-03", "clicks_change": -0.07480409595692515, "impressions_change": -0.06830347275141394, "ctr_diff": -0.0026919971059457537, "position_diff": -0.07118585979317782}, {"title": "2026-W11_root", "week": "2026-W11", "start_date": "2026-03-09", "end_date": "2026-03-15", "property": "root", "clicks": 242287, "impressions": 634246, "ctr": 0.38200792752338997, "position": 4.0864792272694315, "month": "2026-03", "clicks_change": 0.049133974192430936, "impressions_change": 0.05223288793918661, "ctr_diff": -0.0011283683944017797, "position_diff": 0.0040612231380201536}, {"title": "2026-W12_root", "week": "2026-W12", "start_date": "2026-03-16", "end_date": "2026-03-22", "property": "root", "clicks": 223921, "impressions": 571992, "ctr": 0.391475754905663, "position": 3.8597489373588614, "month": "2026-03", "clicks_change": -0.07580266378303417, "impressions_change": -0.09815434389810894, "ctr_diff": 0.00946782738227303, "position_diff": -0.2267302899105701}, {"title": "2026-W13_root", "week": "2026-W13", "start_date": "2026-03-23", "end_date": "2026-03-29", "property": "root", "clicks": 206246, "impressions": 523592, "ctr": 0.3939059420311999, "position": 3.959648080601739, "month": "2026-03", "clicks_change": -0.07893408836152035, "impressions_change": -0.08461656806388901, "ctr_diff": 0.0024301871255368868, "position_diff": 0.09989914324287774}, {"title": "2026-W14_root", "week": "2026-W14", "start_date": "2026-03-30", "end_date": "2026-04-05", "property": "root", "clicks": 197165, "impressions": 483201, "ctr": 0.4080393045544194, "position": 3.9450090641071034, "month": "2026-03", "clicks_change": -0.04402994482317233, "impressions_change": -0.07714212593011352, "ctr_diff": 0.014133362523219506, "position_diff": -0.014639016494635726}, {"title": "2026-W15_root", "week": "2026-W15", "start_date": "2026-04-06", "end_date": "2026-04-12", "property": "root", "clicks": 200635, "impressions": 492885, "ctr": 0.4070624993659779, "position": 3.8017799813718978, "month": "2026-04", "clicks_change": 0.01759947252301372, "impressions_change": 0.020041349252174562, "ctr_diff": -0.0009768051884415097, "position_diff": -0.14322908273520563}], "www": [{"title": "2025-W40_www", "week": "2025-W40", "start_date": "2025-09-29", "end_date": "2025-10-05", "property": "www", "clicks": 107, "impressions": 79466, "ctr": 0.0013464878061057559, "position": 1.5113727611702599, "month": "2025-09", "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-W41_www", "week": "2025-W41", "start_date": "2025-10-06", "end_date": "2025-10-12", "property": "www", "clicks": 186, "impressions": 112109, "ctr": 0.0016590996262565896, "position": 1.4780522531455174, "month": "2025-10", "clicks_change": 0.7383177570093458, "impressions_change": 0.4107794528477588, "ctr_diff": 0.0003126118201508337, "position_diff": -0.03332050802474251}, {"title": "2025-W42_www", "week": "2025-W42", "start_date": "2025-10-13", "end_date": "2025-10-19", "property": "www", "clicks": 273, "impressions": 109136, "ctr": 0.0025014660606949126, "position": 1.5291743955120702, "month": "2025-10", "clicks_change": 0.46774193548387094, "impressions_change": -0.026518834348714198, "ctr_diff": 0.000842366434438323, "position_diff": 0.05112214236655288}, {"title": "2025-W43_www", "week": "2025-W43", "start_date": "2025-10-20", "end_date": "2025-10-26", "property": "www", "clicks": 496, "impressions": 109641, "ctr": 0.004523855127187822, "position": 2.0636704634673113, "month": "2025-10", "clicks_change": 0.8168498168498168, "impressions_change": 0.004627254068318428, "ctr_diff": 0.0020223890664929096, "position_diff": 0.5344960679552411}, {"title": "2025-W44_www", "week": "2025-W44", "start_date": "2025-10-27", "end_date": "2025-11-02", "property": "www", "clicks": 1727, "impressions": 142830, "ctr": 0.012091297346495835, "position": 3.9838575939143466, "month": "2025-10", "clicks_change": 2.4818548387096775, "impressions_change": 0.302706104468219, "ctr_diff": 0.0075674422193080125, "position_diff": 1.9201871304470353}, {"title": "2025-W45_www", "week": "2025-W45", "start_date": "2025-11-03", "end_date": "2025-11-09", "property": "www", "clicks": 28768, "impressions": 159422, "ctr": 0.18045188242526125, "position": 4.330622595039509, "month": "2025-11", "clicks_change": 15.65778807180081, "impressions_change": 0.11616607155359518, "ctr_diff": 0.16836058507876542, "position_diff": 0.3467650011251626}, {"title": "2025-W46_www", "week": "2025-W46", "start_date": "2025-11-10", "end_date": "2025-11-16", "property": "www", "clicks": 38679, "impressions": 197776, "ctr": 0.19556973545829626, "position": 4.244293485535626, "month": "2025-11", "clicks_change": 0.3445147385984427, "impressions_change": 0.24058160103373435, "ctr_diff": 0.015117853033035006, "position_diff": -0.0863291095038834}, {"title": "2025-W47_www", "week": "2025-W47", "start_date": "2025-11-17", "end_date": "2025-11-23", "property": "www", "clicks": 53883, "impressions": 211972, "ctr": 0.2541986677485706, "position": 3.3940795237107344, "month": "2025-11", "clicks_change": 0.3930815171023036, "impressions_change": 0.0717781732869509, "ctr_diff": 0.05862893229027433, "position_diff": -0.8502139618248914}, {"title": "2025-W48_www", "week": "2025-W48", "start_date": "2025-11-24", "end_date": "2025-11-30", "property": "www", "clicks": 18750, "impressions": 215631, "ctr": 0.08695410214672288, "position": 2.9428544058291677, "month": "2025-11", "clicks_change": -0.6520238294081622, "impressions_change": 0.01726171381125809, "ctr_diff": -0.1672445656018477, "position_diff": -0.4512251178815667}, {"title": "2025-W49_www", "week": "2025-W49", "start_date": "2025-12-01", "end_date": "2025-12-07", "property": "www", "clicks": 40286, "impressions": 255554, "ctr": 0.1576418291241773, "position": 3.257656318549786, "month": "2025-12", "clicks_change": 1.1485866666666666, "impressions_change": 0.18514499306685958, "ctr_diff": 0.07068772697745442, "position_diff": 0.3148019127206183}, {"title": "2025-W50_www", "week": "2025-W50", "start_date": "2025-12-08", "end_date": "2025-12-14", "property": "www", "clicks": 166717, "impressions": 310447, "ctr": 0.5370224225069014, "position": 3.7726132073376, "month": "2025-12", "clicks_change": 3.1383358983269622, "impressions_change": 0.21480000313045383, "ctr_diff": 0.37938059338272406, "position_diff": 0.5149568887878142}, {"title": "2025-W51_www", "week": "2025-W51", "start_date": "2025-12-15", "end_date": "2025-12-21", "property": "www", "clicks": 154149, "impressions": 348910, "ctr": 0.4418016107305609, "position": 4.59296472851004, "month": "2025-12", "clicks_change": -0.07538523365943485, "impressions_change": 0.12389554416695926, "ctr_diff": -0.09522081177634045, "position_diff": 0.8203515211724399}, {"title": "2025-W52_www", "week": "2025-W52", "start_date": "2025-12-22", "end_date": "2025-12-28", "property": "www", "clicks": 147204, "impressions": 351747, "ctr": 0.41849397436225466, "position": 4.653278137490449, "month": "2025-12", "clicks_change": -0.04505381157192068, "impressions_change": 0.008131036657017568, "ctr_diff": -0.02330763636830624, "position_diff": 0.06031340898040849}, {"title": "2026-W01_www", "week": "2026-W01", "start_date": "2025-12-29", "end_date": "2026-01-04", "property": "www", "clicks": 158306, "impressions": 371411, "ctr": 0.42622862543112616, "position": 4.6595361941142, "month": "2025-12", "clicks_change": 0.07541914621885275, "impressions_change": 0.05590381723227206, "ctr_diff": 0.007734651068871501, "position_diff": 0.006258056623751784}, {"title": "2026-W02_www", "week": "2026-W02", "start_date": "2026-01-05", "end_date": "2026-01-11", "property": "www", "clicks": 153092, "impressions": 356601, "ctr": 0.4293089475352004, "position": 4.922024587633779, "month": "2026-01", "clicks_change": -0.0329362121460968, "impressions_change": -0.039874963315572234, "ctr_diff": 0.003080322104074218, "position_diff": 0.262488393519579}, {"title": "2026-W03_www", "week": "2026-W03", "start_date": "2026-01-12", "end_date": "2026-01-18", "property": "www", "clicks": 148308, "impressions": 351330, "ctr": 0.4221330373153446, "position": 3.997591184625501, "month": "2026-01", "clicks_change": -0.03124918349750477, "impressions_change": -0.014781226076202815, "ctr_diff": -0.007175910219855808, "position_diff": -0.9244334030082784}, {"title": "2026-W04_www", "week": "2026-W04", "start_date": "2026-01-19", "end_date": "2026-01-25", "property": "www", "clicks": 153885, "impressions": 367395, "ctr": 0.4188543665537092, "position": 4.190738917426513, "month": "2026-01", "clicks_change": 0.03760417509507242, "impressions_change": 0.04572624028690974, "ctr_diff": -0.0032786707616353494, "position_diff": 0.19314773280101205}, {"title": "2026-W05_www", "week": "2026-W05", "start_date": "2026-01-26", "end_date": "2026-02-01", "property": "www", "clicks": 146750, "impressions": 344685, "ctr": 0.42575104805837216, "position": 4.866123078118501, "month": "2026-01", "clicks_change": -0.046365792637359064, "impressions_change": -0.06181357939002981, "ctr_diff": 0.006896681504662938, "position_diff": 0.6753841606919879}, {"title": "2026-W06_www", "week": "2026-W06", "start_date": "2026-02-02", "end_date": "2026-02-08", "property": "www", "clicks": 163497, "impressions": 387059, "ctr": 0.4224084700265334, "position": 4.598307160165086, "month": "2026-02", "clicks_change": 0.11411925042589438, "impressions_change": 0.12293543380187708, "ctr_diff": -0.003342578031838739, "position_diff": -0.2678159179534152}, {"title": "2026-W07_www", "week": "2026-W07", "start_date": "2026-02-09", "end_date": "2026-02-15", "property": "www", "clicks": 213937, "impressions": 507036, "ctr": 0.421936509439172, "position": 4.156374355197198, "month": "2026-02", "clicks_change": 0.3085071897343682, "impressions_change": 0.3099708313202897, "ctr_diff": -0.00047196058736143076, "position_diff": -0.44193280496788745}, {"title": "2026-W08_www", "week": "2026-W08", "start_date": "2026-02-16", "end_date": "2026-02-22", "property": "www", "clicks": 230781, "impressions": 599781, "ctr": 0.3847754430367084, "position": 4.1102330774279325, "month": "2026-02", "clicks_change": 0.07873345891547512, "impressions_change": 0.18291600596407356, "ctr_diff": -0.03716106640246358, "position_diff": -0.0461412777692658}, {"title": "2026-W09_www", "week": "2026-W09", "start_date": "2026-02-23", "end_date": "2026-03-01", "property": "www", "clicks": 247961, "impressions": 596346, "ctr": 0.4158005587360358, "position": 3.920795776534341, "month": "2026-02", "clicks_change": 0.07444287008029257, "impressions_change": -0.005727090387991617, "ctr_diff": 0.031025115699327366, "position_diff": -0.18943730089359168}, {"title": "2026-W10_www", "week": "2026-W10", "start_date": "2026-03-02", "end_date": "2026-03-08", "property": "www", "clicks": 229216, "impressions": 570685, "ctr": 0.40165064790558713, "position": 3.9473231755785845, "month": "2026-03", "clicks_change": -0.07559656558894343, "impressions_change": -0.0430303883986813, "ctr_diff": -0.014149910830448642, "position_diff": 0.026527399044243616}, {"title": "2026-W11_www", "week": "2026-W11", "start_date": "2026-03-09", "end_date": "2026-03-15", "property": "www", "clicks": 240408, "impressions": 604524, "ctr": 0.39768148162852096, "position": 3.9981359826396603, "month": "2026-03", "clicks_change": 0.04882730699427614, "impressions_change": 0.059295408149855, "ctr_diff": -0.003969166277066172, "position_diff": 0.050812807061075826}, {"title": "2026-W12_www", "week": "2026-W12", "start_date": "2026-03-16", "end_date": "2026-03-22", "property": "www", "clicks": 222469, "impressions": 551079, "ctr": 0.40369711057761226, "position": 3.8236741377854906, "month": "2026-03", "clicks_change": -0.07461898106552195, "impressions_change": -0.08840840065903091, "ctr_diff": 0.006015628949091301, "position_diff": -0.1744618448541697}, {"title": "2026-W13_www", "week": "2026-W13", "start_date": "2026-03-23", "end_date": "2026-03-29", "property": "www", "clicks": 204934, "impressions": 506864, "ctr": 0.40431752896240414, "position": 3.9231561750751207, "month": "2026-03", "clicks_change": -0.07881997042284543, "impressions_change": -0.08023350554094785, "ctr_diff": 0.0006204183847918765, "position_diff": 0.09948203728963012}, {"title": "2026-W14_www", "week": "2026-W14", "start_date": "2026-03-30", "end_date": "2026-04-05", "property": "www", "clicks": 196112, "impressions": 467606, "ctr": 0.4193958161358066, "position": 3.8836393765238393, "month": "2026-03", "clicks_change": -0.0430480056993959, "impressions_change": -0.0774527289371508, "ctr_diff": 0.015078287173402483, "position_diff": -0.03951679855128143}, {"title": "2026-W15_www", "week": "2026-W15", "start_date": "2026-04-06", "end_date": "2026-04-12", "property": "www", "clicks": 199635, "impressions": 478156, "ctr": 0.4175101849605568, "position": 3.7770927374050083, "month": "2026-04", "clicks_change": 0.01796422452476136, "impressions_change": 0.02256172931912764, "ctr_diff": -0.0018856311752498134, "position_diff": -0.106546639118831}], "m": [{"title": "2025-W40_m", "week": "2025-W40", "start_date": "2025-09-29", "end_date": "2025-10-05", "property": "m", "clicks": 195, "impressions": 26018, "ctr": 0.00749481128449535, "position": 3.8794701877195394, "month": "2025-09", "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-W41_m", "week": "2025-W41", "start_date": "2025-10-06", "end_date": "2025-10-12", "property": "m", "clicks": 310, "impressions": 48251, "ctr": 0.00642473731114381, "position": 3.8635690475141033, "month": "2025-10", "clicks_change": 0.5897435897435898, "impressions_change": 0.854523791221462, "ctr_diff": -0.0010700739733515395, "position_diff": -0.015901140205436093}, {"title": "2025-W42_m", "week": "2025-W42", "start_date": "2025-10-13", "end_date": "2025-10-19", "property": "m", "clicks": 321, "impressions": 107508, "ctr": 0.0029858243107489676, "position": 2.0936951341750856, "month": "2025-10", "clicks_change": 0.035483870967741936, "impressions_change": 1.2280988995046735, "ctr_diff": -0.0034389130003948426, "position_diff": -1.7698739133390178}, {"title": "2025-W43_m", "week": "2025-W43", "start_date": "2025-10-20", "end_date": "2025-10-26", "property": "m", "clicks": 331, "impressions": 112249, "ctr": 0.002948801325624282, "position": 2.0163878386576592, "month": "2025-10", "clicks_change": 0.03115264797507788, "impressions_change": 0.04409904379208989, "ctr_diff": -3.7022985124685655e-05, "position_diff": -0.07730729551742632}, {"title": "2025-W44_m", "week": "2025-W44", "start_date": "2025-10-27", "end_date": "2025-11-02", "property": "m", "clicks": 345, "impressions": 112267, "ctr": 0.00307303125584544, "position": 2.0625422230725143, "month": "2025-10", "clicks_change": 0.04229607250755287, "impressions_change": 0.00016035777601582196, "ctr_diff": 0.00012422993022115792, "position_diff": 0.04615438441485509}, {"title": "2025-W45_m", "week": "2025-W45", "start_date": "2025-11-03", "end_date": "2025-11-09", "property": "m", "clicks": 298, "impressions": 97276, "ctr": 0.0030634483325794647, "position": 2.188885403818572, "month": "2025-11", "clicks_change": -0.13623188405797101, "impressions_change": -0.13352988856921447, "ctr_diff": -9.582923265975124e-06, "position_diff": 0.12634318074605755}, {"title": "2025-W46_m", "week": "2025-W46", "start_date": "2025-11-10", "end_date": "2025-11-16", "property": "m", "clicks": 540, "impressions": 123878, "ctr": 0.004359127528697589, "position": 2.5412322227438673, "month": "2025-11", "clicks_change": 0.8120805369127517, "impressions_change": 0.2734693038365064, "ctr_diff": 0.0012956791961181244, "position_diff": 0.3523468189252954}, {"title": "2025-W47_m", "week": "2025-W47", "start_date": "2025-11-17", "end_date": "2025-11-23", "property": "m", "clicks": 1473, "impressions": 131752, "ctr": 0.011180095937822576, "position": 2.723060149512152, "month": "2025-11", "clicks_change": 1.7277777777777779, "impressions_change": 0.06356253733512003, "ctr_diff": 0.006820968409124987, "position_diff": 0.18182792676828452}, {"title": "2025-W48_m", "week": "2025-W48", "start_date": "2025-11-24", "end_date": "2025-11-30", "property": "m", "clicks": 2010, "impressions": 140466, "ctr": 0.014309512622271581, "position": 2.519066805798356, "month": "2025-11", "clicks_change": 0.3645621181262729, "impressions_change": 0.06613941344343918, "ctr_diff": 0.0031294166844490056, "position_diff": -0.20399334371379574}, {"title": "2025-W49_m", "week": "2025-W49", "start_date": "2025-12-01", "end_date": "2025-12-07", "property": "m", "clicks": 1433, "impressions": 155637, "ctr": 0.009207322166322918, "position": 2.1639448792375533, "month": "2025-12", "clicks_change": -0.2870646766169154, "impressions_change": 0.10800478407586177, "ctr_diff": -0.005102190455948664, "position_diff": -0.35512192656080277}, {"title": "2025-W50_m", "week": "2025-W50", "start_date": "2025-12-08", "end_date": "2025-12-14", "property": "m", "clicks": 1787, "impressions": 81403, "ctr": 0.0219525078928295, "position": 3.7145120195573478, "month": "2025-12", "clicks_change": 0.24703419399860432, "impressions_change": -0.47696884416944557, "ctr_diff": 0.012745185726506583, "position_diff": 1.5505671403197945}, {"title": "2025-W51_m", "week": "2025-W51", "start_date": "2025-12-15", "end_date": "2025-12-21", "property": "m", "clicks": 1550, "impressions": 177428, "ctr": 0.008735937957932231, "position": 1.8649051217886967, "month": "2025-12", "clicks_change": -0.13262451035254616, "impressions_change": 1.1796248295517364, "ctr_diff": -0.01321656993489727, "position_diff": -1.849606897768651}, {"title": "2025-W52_m", "week": "2025-W52", "start_date": "2025-12-22", "end_date": "2025-12-28", "property": "m", "clicks": 1438, "impressions": 180481, "ctr": 0.007967597697264532, "position": 1.9663240224194651, "month": "2025-12", "clicks_change": -0.07225806451612904, "impressions_change": 0.017206979732623938, "ctr_diff": -0.0007683402606676985, "position_diff": 0.10141890063076842}, {"title": "2026-W01_m", "week": "2026-W01", "start_date": "2025-12-29", "end_date": "2026-01-04", "property": "m", "clicks": 1645, "impressions": 200285, "ctr": 0.008213296053124299, "position": 1.9597917214655804, "month": "2025-12", "clicks_change": 0.14394993045897078, "impressions_change": 0.10972900194480305, "ctr_diff": 0.00024569835585976606, "position_diff": -0.006532300953884684}, {"title": "2026-W02_m", "week": "2026-W02", "start_date": "2026-01-05", "end_date": "2026-01-11", "property": "m", "clicks": 928, "impressions": 147655, "ctr": 0.00628492093054756, "position": 1.7218275488044361, "month": "2026-01", "clicks_change": -0.4358662613981763, "impressions_change": -0.2627755448485908, "ctr_diff": -0.0019283751225767382, "position_diff": -0.23796417266114434}, {"title": "2026-W03_m", "week": "2026-W03", "start_date": "2026-01-12", "end_date": "2026-01-18", "property": "m", "clicks": 537, "impressions": 98705, "ctr": 0.005440453877716428, "position": 1.477593957345945, "month": "2026-01", "clicks_change": -0.4213362068965517, "impressions_change": -0.3315160339981714, "ctr_diff": -0.0008444670528311325, "position_diff": -0.24423359145849122}, {"title": "2026-W04_m", "week": "2026-W04", "start_date": "2026-01-19", "end_date": "2026-01-25", "property": "m", "clicks": 694, "impressions": 74577, "ctr": 0.009305818147686284, "position": 2.260932949261011, "month": "2026-01", "clicks_change": 0.29236499068901306, "impressions_change": -0.24444557013322527, "ctr_diff": 0.003865364269969856, "position_diff": 0.7833389919150662}, {"title": "2026-W05_m", "week": "2026-W05", "start_date": "2026-01-26", "end_date": "2026-02-01", "property": "m", "clicks": 712, "impressions": 20294, "ctr": 0.035084261358036856, "position": 4.138599442169137, "month": "2026-01", "clicks_change": 0.025936599423631124, "impressions_change": -0.7278785684594447, "ctr_diff": 0.025778443210350572, "position_diff": 1.877666492908126}, {"title": "2026-W06_m", "week": "2026-W06", "start_date": "2026-02-02", "end_date": "2026-02-08", "property": "m", "clicks": 639, "impressions": 26209, "ctr": 0.024380937845778168, "position": 4.91566988353748, "month": "2026-02", "clicks_change": -0.10252808988764045, "impressions_change": 0.2914654577707697, "ctr_diff": -0.010703323512258688, "position_diff": 0.7770704413683429}, {"title": "2026-W07_m", "week": "2026-W07", "start_date": "2026-02-09", "end_date": "2026-02-15", "property": "m", "clicks": 700, "impressions": 28746, "ctr": 0.02435121408195923, "position": 4.506979228909293, "month": "2026-02", "clicks_change": 0.09546165884194054, "impressions_change": 0.09679880956923194, "ctr_diff": -2.9723763818937515e-05, "position_diff": -0.4086906546281872}, {"title": "2026-W08_m", "week": "2026-W08", "start_date": "2026-02-16", "end_date": "2026-02-22", "property": "m", "clicks": 753, "impressions": 69978, "ctr": 0.010760524736345709, "position": 2.6822523689259787, "month": "2026-02", "clicks_change": 0.07571428571428572, "impressions_change": 1.4343560843247756, "ctr_diff": -0.013590689345613522, "position_diff": -1.824726859983314}, {"title": "2026-W09_m", "week": "2026-W09", "start_date": "2026-02-23", "end_date": "2026-03-01", "property": "m", "clicks": 1182, "impressions": 108345, "ctr": 0.010909594351377543, "position": 3.428607131041503, "month": "2026-02", "clicks_change": 0.5697211155378487, "impressions_change": 0.5482723141558775, "ctr_diff": 0.00014906961503183443, "position_diff": 0.7463547621155242}, {"title": "2026-W10_m", "week": "2026-W10", "start_date": "2026-03-02", "end_date": "2026-03-08", "property": "m", "clicks": 1287, "impressions": 77961, "ctr": 0.016508254127063533, "position": 3.4692882368836306, "month": "2026-03", "clicks_change": 0.08883248730964467, "impressions_change": -0.2804374913470857, "ctr_diff": 0.00559865977568599, "position_diff": 0.040681105842127696}, {"title": "2026-W11_m", "week": "2026-W11", "start_date": "2026-03-09", "end_date": "2026-03-15", "property": "m", "clicks": 1460, "impressions": 47744, "ctr": 0.03057975871313673, "position": 4.482875525496219, "month": "2026-03", "clicks_change": 0.13442113442113443, "impressions_change": -0.38759123151319247, "ctr_diff": 0.014071504586073195, "position_diff": 1.0135872886125883}, {"title": "2026-W12_m", "week": "2026-W12", "start_date": "2026-03-16", "end_date": "2026-03-22", "property": "m", "clicks": 1003, "impressions": 33779, "ctr": 0.029693004529441368, "position": 4.358316298518142, "month": "2026-03", "clicks_change": -0.313013698630137, "impressions_change": -0.29249748659517427, "ctr_diff": -0.000886754183695361, "position_diff": -0.12455922697807686}, {"title": "2026-W13_m", "week": "2026-W13", "start_date": "2026-03-23", "end_date": "2026-03-29", "property": "m", "clicks": 931, "impressions": 25562, "ctr": 0.036421250293404275, "position": 4.611335642088142, "month": "2026-03", "clicks_change": -0.07178464606181456, "impressions_change": -0.24325764528257202, "ctr_diff": 0.006728245763962908, "position_diff": 0.2530193435700001}, {"title": "2026-W14_m", "week": "2026-W14", "start_date": "2026-03-30", "end_date": "2026-04-05", "property": "m", "clicks": 651, "impressions": 38193, "ctr": 0.017045008247584637, "position": 4.1291343868954495, "month": "2026-03", "clicks_change": -0.3007518796992481, "impressions_change": 0.494131914560676, "ctr_diff": -0.019376242045819638, "position_diff": -0.48220125519269263}, {"title": "2026-W15_m", "week": "2026-W15", "start_date": "2026-04-06", "end_date": "2026-04-12", "property": "m", "clicks": 716, "impressions": 32744, "ctr": 0.021866601514781335, "position": 4.025771791682576, "month": "2026-04", "clicks_change": 0.09984639016897082, "impressions_change": -0.14267012279737123, "ctr_diff": 0.004821593267196698, "position_diff": -0.10336259521287339}], "trade": [{"title": "2025-W40_trade", "week": "2025-W40", "start_date": "2025-09-29", "end_date": "2025-10-05", "property": "trade", "clicks": 1444, "impressions": 91708, "ctr": 0.01574562742617874, "position": 2.502459947671027, "month": "2025-09", "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-W41_trade", "week": "2025-W41", "start_date": "2025-10-06", "end_date": "2025-10-12", "property": "trade", "clicks": 1812, "impressions": 134916, "ctr": 0.013430579026950102, "position": 2.8205828390857492, "month": "2025-10", "clicks_change": 0.2548476454293629, "impressions_change": 0.4711475552841628, "ctr_diff": -0.002315048399228638, "position_diff": 0.3181228914147223}, {"title": "2025-W42_trade", "week": "2025-W42", "start_date": "2025-10-13", "end_date": "2025-10-19", "property": "trade", "clicks": 1931, "impressions": 142500, "ctr": 0.013550877192982456, "position": 2.9590397720084702, "month": "2025-10", "clicks_change": 0.06567328918322296, "impressions_change": 0.056212754602864005, "ctr_diff": 0.00012029816603235412, "position_diff": 0.138456932922721}, {"title": "2025-W43_trade", "week": "2025-W43", "start_date": "2025-10-20", "end_date": "2025-10-26", "property": "trade", "clicks": 1800, "impressions": 135096, "ctr": 0.013323858589447504, "position": 3.0841675015540413, "month": "2025-10", "clicks_change": -0.06784049715173485, "impressions_change": -0.051957894736842106, "ctr_diff": -0.0002270186035349519, "position_diff": 0.12512772954557105}, {"title": "2025-W44_trade", "week": "2025-W44", "start_date": "2025-10-27", "end_date": "2025-11-02", "property": "trade", "clicks": 1713, "impressions": 125260, "ctr": 0.013675554845920486, "position": 3.139515753555228, "month": "2025-10", "clicks_change": -0.04833333333333333, "impressions_change": -0.0728074850476698, "ctr_diff": 0.00035169625647298204, "position_diff": 0.05534825200118654}, {"title": "2025-W45_trade", "week": "2025-W45", "start_date": "2025-11-03", "end_date": "2025-11-09", "property": "trade", "clicks": 1907, "impressions": 130084, "ctr": 0.014659758310015068, "position": 3.2006976533343745, "month": "2025-11", "clicks_change": 0.11325160537069469, "impressions_change": 0.038511895257863644, "ctr_diff": 0.0009842034640945817, "position_diff": 0.061181899779146676}, {"title": "2025-W46_trade", "week": "2025-W46", "start_date": "2025-11-10", "end_date": "2025-11-16", "property": "trade", "clicks": 2565, "impressions": 95464, "ctr": 0.026868767284002348, "position": 4.77359793662601, "month": "2025-11", "clicks_change": 0.3450445726271631, "impressions_change": -0.26613572768365057, "ctr_diff": 0.01220900897398728, "position_diff": 1.5729002832916357}, {"title": "2025-W47_trade", "week": "2025-W47", "start_date": "2025-11-17", "end_date": "2025-11-23", "property": "trade", "clicks": 3266, "impressions": 136381, "ctr": 0.02394761733672579, "position": 4.851678571024016, "month": "2025-11", "clicks_change": 0.2732943469785575, "impressions_change": 0.4286118327327579, "ctr_diff": -0.002921149947276557, "position_diff": 0.07808063439800605}, {"title": "2025-W48_trade", "week": "2025-W48", "start_date": "2025-11-24", "end_date": "2025-11-30", "property": "trade", "clicks": 3209, "impressions": 139721, "ctr": 0.022967198917843417, "position": 4.327842277590327, "month": "2025-11", "clicks_change": -0.01745254133496632, "impressions_change": 0.024490214912634457, "ctr_diff": -0.0009804184188823735, "position_diff": -0.5238362934336891}, {"title": "2025-W49_trade", "week": "2025-W49", "start_date": "2025-12-01", "end_date": "2025-12-07", "property": "trade", "clicks": 2521, "impressions": 97890, "ctr": 0.02575339666973133, "position": 4.246394034124948, "month": "2025-12", "clicks_change": -0.21439700841383608, "impressions_change": -0.2993894976417289, "ctr_diff": 0.0027861977518879137, "position_diff": -0.08144824346537938}, {"title": "2025-W50_trade", "week": "2025-W50", "start_date": "2025-12-08", "end_date": "2025-12-14", "property": "trade", "clicks": 3268, "impressions": 120149, "ctr": 0.02719956054565581, "position": 4.157360974738066, "month": "2025-12", "clicks_change": 0.29631098770329234, "impressions_change": 0.2273878843599959, "ctr_diff": 0.001446163875924479, "position_diff": -0.08903305938688177}, {"title": "2025-W51_trade", "week": "2025-W51", "start_date": "2025-12-15", "end_date": "2025-12-21", "property": "trade", "clicks": 2857, "impressions": 101005, "ctr": 0.02828572842928568, "position": 5.008867596917723, "month": "2025-12", "clicks_change": -0.12576499388004897, "impressions_change": -0.15933549176439255, "ctr_diff": 0.0010861678836298697, "position_diff": 0.8515066221796568}, {"title": "2025-W52_trade", "week": "2025-W52", "start_date": "2025-12-22", "end_date": "2025-12-28", "property": "trade", "clicks": 2848, "impressions": 99430, "ctr": 0.028643266619732474, "position": 4.965457240631108, "month": "2025-12", "clicks_change": -0.003150157507875394, "impressions_change": -0.015593287461016781, "ctr_diff": 0.00035753819044679475, "position_diff": -0.04341035628661505}, {"title": "2026-W01_trade", "week": "2026-W01", "start_date": "2025-12-29", "end_date": "2026-01-04", "property": "trade", "clicks": 3205, "impressions": 91955, "ctr": 0.03485400467620031, "position": 5.811308471336751, "month": "2025-12", "clicks_change": 0.12535112359550563, "impressions_change": -0.0751785175500352, "ctr_diff": 0.006210738056467838, "position_diff": 0.8458512307056436}, {"title": "2026-W02_trade", "week": "2026-W02", "start_date": "2026-01-05", "end_date": "2026-01-11", "property": "trade", "clicks": 3182, "impressions": 118697, "ctr": 0.02680775419766296, "position": 5.572810927436899, "month": "2026-01", "clicks_change": -0.007176287051482059, "impressions_change": 0.2908161600782992, "ctr_diff": -0.008046250478537353, "position_diff": -0.238497543899852}, {"title": "2026-W03_trade", "week": "2026-W03", "start_date": "2026-01-12", "end_date": "2026-01-18", "property": "trade", "clicks": 2621, "impressions": 105263, "ctr": 0.024899537349306024, "position": 4.470274423013376, "month": "2026-01", "clicks_change": -0.17630421118793213, "impressions_change": -0.11317893459817856, "ctr_diff": -0.001908216848356934, "position_diff": -1.1025365044235231}, {"title": "2026-W04_trade", "week": "2026-W04", "start_date": "2026-01-19", "end_date": "2026-01-25", "property": "trade", "clicks": 2844, "impressions": 86393, "ctr": 0.032919333742317085, "position": 5.640668764269117, "month": "2026-01", "clicks_change": 0.08508202975963373, "impressions_change": -0.17926526889790334, "ctr_diff": 0.00801979639301106, "position_diff": 1.170394341255741}, {"title": "2026-W05_trade", "week": "2026-W05", "start_date": "2026-01-26", "end_date": "2026-02-01", "property": "trade", "clicks": 2664, "impressions": 93546, "ctr": 0.028477968058495284, "position": 6.801411360970818, "month": "2026-01", "clicks_change": -0.06329113924050633, "impressions_change": 0.08279605986596136, "ctr_diff": -0.0044413656838218005, "position_diff": 1.1607425967017013}, {"title": "2026-W06_trade", "week": "2026-W06", "start_date": "2026-02-02", "end_date": "2026-02-08", "property": "trade", "clicks": 3065, "impressions": 98994, "ctr": 0.030961472412469444, "position": 6.150799500471504, "month": "2026-02", "clicks_change": 0.15052552552552553, "impressions_change": 0.058238727470976845, "ctr_diff": 0.00248350435397416, "position_diff": -0.6506118604993141}, {"title": "2026-W07_trade", "week": "2026-W07", "start_date": "2026-02-09", "end_date": "2026-02-15", "property": "trade", "clicks": 2053, "impressions": 60664, "ctr": 0.033842146907556374, "position": 6.772526181031493, "month": "2026-02", "clicks_change": -0.33017944535073407, "impressions_change": -0.3871951835464776, "ctr_diff": 0.0028806744950869295, "position_diff": 0.6217266805599886}, {"title": "2026-W08_trade", "week": "2026-W08", "start_date": "2026-02-16", "end_date": "2026-02-22", "property": "trade", "clicks": 324, "impressions": 12406, "ctr": 0.026116395292600354, "position": 8.335660374618353, "month": "2026-02", "clicks_change": -0.8421821724305893, "impressions_change": -0.7954965053408941, "ctr_diff": -0.00772575161495602, "position_diff": 1.5631341935868601}, {"title": "2026-W09_trade", "week": "2026-W09", "start_date": "2026-02-23", "end_date": "2026-03-01", "property": "trade", "clicks": 154, "impressions": 6041, "ctr": 0.02549246813441483, "position": 8.18686284983833, "month": "2026-02", "clicks_change": -0.5246913580246914, "impressions_change": -0.5130581976463002, "ctr_diff": -0.0006239271581855235, "position_diff": -0.14879752478002395}, {"title": "2026-W10_trade", "week": "2026-W10", "start_date": "2026-03-02", "end_date": "2026-03-08", "property": "trade", "clicks": 83, "impressions": 4071, "ctr": 0.020388111029231146, "position": 7.917291158128416, "month": "2026-03", "clicks_change": -0.461038961038961, "impressions_change": -0.32610494951167024, "ctr_diff": -0.005104357105183685, "position_diff": -0.26957169170991335}, {"title": "2026-W11_trade", "week": "2026-W11", "start_date": "2026-03-09", "end_date": "2026-03-15", "property": "trade", "clicks": 85, "impressions": 4105, "ctr": 0.020706455542021926, "position": 9.704918734550429, "month": "2026-03", "clicks_change": 0.024096385542168676, "impressions_change": 0.008351756325227217, "ctr_diff": 0.00031834451279078024, "position_diff": 1.7876275764220129}, {"title": "2026-W12_trade", "week": "2026-W12", "start_date": "2026-03-16", "end_date": "2026-03-22", "property": "trade", "clicks": 104, "impressions": 3682, "ctr": 0.028245518739815317, "position": 7.837288061207388, "month": "2026-03", "clicks_change": 0.2235294117647059, "impressions_change": -0.10304506699147381, "ctr_diff": 0.007539063197793391, "position_diff": -1.867630673343041}, {"title": "2026-W13_trade", "week": "2026-W13", "start_date": "2026-03-23", "end_date": "2026-03-29", "property": "trade", "clicks": 125, "impressions": 3291, "ctr": 0.03798237617745366, "position": 7.535999785856083, "month": "2026-03", "clicks_change": 0.20192307692307693, "impressions_change": -0.10619228680065182, "ctr_diff": 0.009736857437638344, "position_diff": -0.30128827535130487}, {"title": "2026-W14_trade", "week": "2026-W14", "start_date": "2026-03-30", "end_date": "2026-04-05", "property": "trade", "clicks": 128, "impressions": 4118, "ctr": 0.03108305002428363, "position": 6.316555752828053, "month": "2026-03", "clicks_change": 0.024, "impressions_change": 0.2512914007900334, "ctr_diff": -0.0068993261531700295, "position_diff": -1.2194440330280294}, {"title": "2026-W15_trade", "week": "2026-W15", "start_date": "2026-04-06", "end_date": "2026-04-12", "property": "trade", "clicks": 84, "impressions": 1967, "ctr": 0.042704626334519574, "position": 6.518328142097485, "month": "2026-04", "clicks_change": -0.34375, "impressions_change": -0.5223409422049539, "ctr_diff": 0.011621576310235943, "position_diff": 0.20177238926943186}]};
+    const weeklyDataAll = {"root": [{"title": "2025-W40_root", "week": "2025-W40", "start_date": "2025-09-29", "end_date": "2025-10-05", "property": "root", "clicks": 22756, "impressions": 135679, "ctr": 0.16771939651677858, "position": 4.597432525741798, "month": "2025-09", "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-W41_root", "week": "2025-W41", "start_date": "2025-10-06", "end_date": "2025-10-12", "property": "root", "clicks": 34844, "impressions": 211982, "ctr": 0.1643724467171741, "position": 4.908915992384833, "month": "2025-10", "clicks_change": 0.5312005624890139, "impressions_change": 0.5623788500799681, "ctr_diff": -0.0033469497996044817, "position_diff": 0.3114834666430353}, {"title": "2025-W42_root", "week": "2025-W42", "start_date": "2025-10-13", "end_date": "2025-10-19", "property": "root", "clicks": 33415, "impressions": 216296, "ctr": 0.15448736916077968, "position": 4.977619316014389, "month": "2025-10", "clicks_change": -0.04101136494087935, "impressions_change": 0.020350784500570804, "ctr_diff": -0.009885077556394423, "position_diff": 0.06870332362955534}, {"title": "2025-W43_root", "week": "2025-W43", "start_date": "2025-10-20", "end_date": "2025-10-26", "property": "root", "clicks": 34892, "impressions": 213225, "ctr": 0.1636393481064603, "position": 5.073473218814244, "month": "2025-10", "clicks_change": 0.044201705820739186, "impressions_change": -0.01419813588785738, "ctr_diff": 0.009151978945680622, "position_diff": 0.09585390279985528}, {"title": "2025-W44_root", "week": "2025-W44", "start_date": "2025-10-27", "end_date": "2025-11-02", "property": "root", "clicks": 37280, "impressions": 222065, "ctr": 0.16787877423276967, "position": 5.615911002544946, "month": "2025-10", "clicks_change": 0.06843975696434713, "impressions_change": 0.041458553171532415, "ctr_diff": 0.00423942612630937, "position_diff": 0.5424377837307022}, {"title": "2025-W45_root", "week": "2025-W45", "start_date": "2025-11-03", "end_date": "2025-11-09", "property": "root", "clicks": 34619, "impressions": 230438, "ctr": 0.1502312986573395, "position": 5.451413146032527, "month": "2025-11", "clicks_change": -0.07137875536480687, "impressions_change": 0.03770517641231171, "ctr_diff": -0.01764747557543017, "position_diff": -0.1644978565124191}, {"title": "2025-W46_root", "week": "2025-W46", "start_date": "2025-11-10", "end_date": "2025-11-16", "property": "root", "clicks": 42192, "impressions": 285588, "ctr": 0.14773729988654985, "position": 5.310124830919278, "month": "2025-11", "clicks_change": 0.21875270805049252, "impressions_change": 0.23932684713458718, "ctr_diff": -0.0024939987707896516, "position_diff": -0.14128831511324869}, {"title": "2025-W47_root", "week": "2025-W47", "start_date": "2025-11-17", "end_date": "2025-11-23", "property": "root", "clicks": 58998, "impressions": 333128, "ctr": 0.1771030955068322, "position": 5.059239942041331, "month": "2025-11", "clicks_change": 0.39832195676905574, "impressions_change": 0.16646357690099023, "ctr_diff": 0.029365795620282353, "position_diff": -0.25088488887794735}, {"title": "2025-W48_root", "week": "2025-W48", "start_date": "2025-11-24", "end_date": "2025-11-30", "property": "root", "clicks": 60243, "impressions": 339464, "ctr": 0.17746506256922678, "position": 4.611709568095214, "month": "2025-11", "clicks_change": 0.021102410251194956, "impressions_change": 0.01901971614514541, "ctr_diff": 0.0003619670623945803, "position_diff": -0.44753037394611717}, {"title": "2025-W49_root", "week": "2025-W49", "start_date": "2025-12-01", "end_date": "2025-12-07", "property": "root", "clicks": 83147, "impressions": 342328, "ctr": 0.2428869388422799, "position": 4.366239903787198, "month": "2025-12", "clicks_change": 0.3801935494580283, "impressions_change": 0.008436829825843093, "ctr_diff": 0.06542187627305313, "position_diff": -0.24546966430801564}, {"title": "2025-W50_root", "week": "2025-W50", "start_date": "2025-12-08", "end_date": "2025-12-14", "property": "root", "clicks": 171997, "impressions": 386789, "ctr": 0.444679140306472, "position": 4.281695129871602, "month": "2025-12", "clicks_change": 1.0685893658219778, "impressions_change": 0.12987836227244046, "ctr_diff": 0.20179220146419208, "position_diff": -0.08454477391559578}, {"title": "2025-W51_root", "week": "2025-W51", "start_date": "2025-12-15", "end_date": "2025-12-21", "property": "root", "clicks": 158782, "impressions": 430174, "ctr": 0.3691111038788955, "position": 5.006409460895297, "month": "2025-12", "clicks_change": -0.07683273545468816, "impressions_change": 0.11216709885751663, "ctr_diff": -0.07556803642757648, "position_diff": 0.7247143310236943}, {"title": "2025-W52_root", "week": "2025-W52", "start_date": "2025-12-22", "end_date": "2025-12-28", "property": "root", "clicks": 151607, "impressions": 437663, "ctr": 0.3464012265144643, "position": 5.0964204538788, "month": "2025-12", "clicks_change": -0.045187741683566145, "impressions_change": 0.017409234402823045, "ctr_diff": -0.022709877364431197, "position_diff": 0.0900109929835029}, {"title": "2026-W01_root", "week": "2026-W01", "start_date": "2025-12-29", "end_date": "2026-01-04", "property": "root", "clicks": 163301, "impressions": 464391, "ctr": 0.35164548839232457, "position": 5.055858946631738, "month": "2025-12", "clicks_change": 0.07713364158647028, "impressions_change": 0.061069818559028294, "ctr_diff": 0.005244261877860257, "position_diff": -0.040561507247061535}, {"title": "2026-W02_root", "week": "2026-W02", "start_date": "2026-01-05", "end_date": "2026-01-11", "property": "root", "clicks": 157577, "impressions": 437749, "ctr": 0.3599711250054255, "position": 5.476820069338779, "month": "2026-01", "clicks_change": -0.03505183679218131, "impressions_change": -0.05736975953453017, "ctr_diff": 0.008325636613100929, "position_diff": 0.4209611227070411}, {"title": "2026-W03_root", "week": "2026-W03", "start_date": "2026-01-12", "end_date": "2026-01-18", "property": "root", "clicks": 151919, "impressions": 412165, "ctr": 0.3685878228379411, "position": 4.428855924940796, "month": "2026-01", "clicks_change": -0.03590625535452509, "impressions_change": -0.05844445104386303, "ctr_diff": 0.008616697832515618, "position_diff": -1.0479641443979828}, {"title": "2026-W04_root", "week": "2026-W04", "start_date": "2026-01-19", "end_date": "2026-01-25", "property": "root", "clicks": 157940, "impressions": 434890, "ctr": 0.36317229644277865, "position": 4.6328419174517705, "month": "2026-01", "clicks_change": 0.0396329623022795, "impressions_change": 0.055135685951014764, "ctr_diff": -0.005415526395162462, "position_diff": 0.20398599251097416}, {"title": "2026-W05_root", "week": "2026-W05", "start_date": "2026-01-26", "end_date": "2026-02-01", "property": "root", "clicks": 150528, "impressions": 411428, "ctr": 0.36586717481552056, "position": 5.532440576884789, "month": "2026-01", "clicks_change": -0.04692921362542738, "impressions_change": -0.053949274529191286, "ctr_diff": 0.0026948783727419046, "position_diff": 0.8995986594330185}, {"title": "2026-W06_root", "week": "2026-W06", "start_date": "2026-02-02", "end_date": "2026-02-08", "property": "root", "clicks": 167566, "impressions": 460757, "ctr": 0.36367542978185896, "position": 5.204441534025096, "month": "2026-02", "clicks_change": 0.11318824404761904, "impressions_change": 0.11989704152366878, "ctr_diff": -0.0021917450336615962, "position_diff": -0.32799904285969284}, {"title": "2026-W07_root", "week": "2026-W07", "start_date": "2026-02-09", "end_date": "2026-02-15", "property": "root", "clicks": 216974, "impressions": 557448, "ctr": 0.3892273360026406, "position": 4.497501104629009, "month": "2026-02", "clicks_change": 0.29485695188761446, "impressions_change": 0.20985248189392675, "ctr_diff": 0.02555190622078163, "position_diff": -0.706940429396087}, {"title": "2026-W08_root", "week": "2026-W08", "start_date": "2026-02-16", "end_date": "2026-02-22", "property": "root", "clicks": 232211, "impressions": 631960, "ctr": 0.36744572441293755, "position": 4.278633060197001, "month": "2026-02", "clicks_change": 0.07022500391752007, "impressions_change": 0.13366627918657883, "ctr_diff": -0.021781611589703043, "position_diff": -0.2188680444320079}, {"title": "2026-W09_root", "week": "2026-W09", "start_date": "2026-02-23", "end_date": "2026-03-01", "property": "root", "clicks": 249612, "impressions": 646951, "ctr": 0.3858282930237375, "position": 4.153603863924589, "month": "2026-02", "clicks_change": 0.0749361572018552, "impressions_change": 0.02372143806570036, "ctr_diff": 0.018382568610799954, "position_diff": -0.12502919627241216}, {"title": "2026-W10_root", "week": "2026-W10", "start_date": "2026-03-02", "end_date": "2026-03-08", "property": "root", "clicks": 230940, "impressions": 602762, "ctr": 0.38313629591779175, "position": 4.082418004131411, "month": "2026-03", "clicks_change": -0.07480409595692515, "impressions_change": -0.06830347275141394, "ctr_diff": -0.0026919971059457537, "position_diff": -0.07118585979317782}, {"title": "2026-W11_root", "week": "2026-W11", "start_date": "2026-03-09", "end_date": "2026-03-15", "property": "root", "clicks": 242287, "impressions": 634246, "ctr": 0.38200792752338997, "position": 4.0864792272694315, "month": "2026-03", "clicks_change": 0.049133974192430936, "impressions_change": 0.05223288793918661, "ctr_diff": -0.0011283683944017797, "position_diff": 0.0040612231380201536}, {"title": "2026-W12_root", "week": "2026-W12", "start_date": "2026-03-16", "end_date": "2026-03-22", "property": "root", "clicks": 223921, "impressions": 571992, "ctr": 0.391475754905663, "position": 3.8597489373588614, "month": "2026-03", "clicks_change": -0.07580266378303417, "impressions_change": -0.09815434389810894, "ctr_diff": 0.00946782738227303, "position_diff": -0.2267302899105701}, {"title": "2026-W13_root", "week": "2026-W13", "start_date": "2026-03-23", "end_date": "2026-03-29", "property": "root", "clicks": 206246, "impressions": 523592, "ctr": 0.3939059420311999, "position": 3.959648080601739, "month": "2026-03", "clicks_change": -0.07893408836152035, "impressions_change": -0.08461656806388901, "ctr_diff": 0.0024301871255368868, "position_diff": 0.09989914324287774}, {"title": "2026-W14_root", "week": "2026-W14", "start_date": "2026-03-30", "end_date": "2026-04-05", "property": "root", "clicks": 197165, "impressions": 483201, "ctr": 0.4080393045544194, "position": 3.9450090641071034, "month": "2026-03", "clicks_change": -0.04402994482317233, "impressions_change": -0.07714212593011352, "ctr_diff": 0.014133362523219506, "position_diff": -0.014639016494635726}, {"title": "2026-W15_root", "week": "2026-W15", "start_date": "2026-04-06", "end_date": "2026-04-12", "property": "root", "clicks": 200635, "impressions": 492885, "ctr": 0.4070624993659779, "position": 3.8017799813718978, "month": "2026-04", "clicks_change": 0.01759947252301372, "impressions_change": 0.020041349252174562, "ctr_diff": -0.0009768051884415097, "position_diff": -0.14322908273520563}, {"title": "2026-W16_root", "week": "2026-W16", "start_date": "2026-04-13", "end_date": "2026-04-19", "property": "root", "clicks": 26351, "impressions": 74581, "ctr": 0.35332055081052816, "position": 4.309931483889999, "month": "2026-04", "clicks_change": -0.8686619981558552, "impressions_change": -0.8486847844831958, "ctr_diff": -0.053741948555449726, "position_diff": 0.5081515025181012}], "www": [{"title": "2025-W40_www", "week": "2025-W40", "start_date": "2025-09-29", "end_date": "2025-10-05", "property": "www", "clicks": 107, "impressions": 79466, "ctr": 0.0013464878061057559, "position": 1.5113727611702599, "month": "2025-09", "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-W41_www", "week": "2025-W41", "start_date": "2025-10-06", "end_date": "2025-10-12", "property": "www", "clicks": 186, "impressions": 112109, "ctr": 0.0016590996262565896, "position": 1.4780522531455174, "month": "2025-10", "clicks_change": 0.7383177570093458, "impressions_change": 0.4107794528477588, "ctr_diff": 0.0003126118201508337, "position_diff": -0.03332050802474251}, {"title": "2025-W42_www", "week": "2025-W42", "start_date": "2025-10-13", "end_date": "2025-10-19", "property": "www", "clicks": 273, "impressions": 109136, "ctr": 0.0025014660606949126, "position": 1.5291743955120702, "month": "2025-10", "clicks_change": 0.46774193548387094, "impressions_change": -0.026518834348714198, "ctr_diff": 0.000842366434438323, "position_diff": 0.05112214236655288}, {"title": "2025-W43_www", "week": "2025-W43", "start_date": "2025-10-20", "end_date": "2025-10-26", "property": "www", "clicks": 496, "impressions": 109641, "ctr": 0.004523855127187822, "position": 2.0636704634673113, "month": "2025-10", "clicks_change": 0.8168498168498168, "impressions_change": 0.004627254068318428, "ctr_diff": 0.0020223890664929096, "position_diff": 0.5344960679552411}, {"title": "2025-W44_www", "week": "2025-W44", "start_date": "2025-10-27", "end_date": "2025-11-02", "property": "www", "clicks": 1727, "impressions": 142830, "ctr": 0.012091297346495835, "position": 3.9838575939143466, "month": "2025-10", "clicks_change": 2.4818548387096775, "impressions_change": 0.302706104468219, "ctr_diff": 0.0075674422193080125, "position_diff": 1.9201871304470353}, {"title": "2025-W45_www", "week": "2025-W45", "start_date": "2025-11-03", "end_date": "2025-11-09", "property": "www", "clicks": 28768, "impressions": 159422, "ctr": 0.18045188242526125, "position": 4.330622595039509, "month": "2025-11", "clicks_change": 15.65778807180081, "impressions_change": 0.11616607155359518, "ctr_diff": 0.16836058507876542, "position_diff": 0.3467650011251626}, {"title": "2025-W46_www", "week": "2025-W46", "start_date": "2025-11-10", "end_date": "2025-11-16", "property": "www", "clicks": 38679, "impressions": 197776, "ctr": 0.19556973545829626, "position": 4.244293485535626, "month": "2025-11", "clicks_change": 0.3445147385984427, "impressions_change": 0.24058160103373435, "ctr_diff": 0.015117853033035006, "position_diff": -0.0863291095038834}, {"title": "2025-W47_www", "week": "2025-W47", "start_date": "2025-11-17", "end_date": "2025-11-23", "property": "www", "clicks": 53883, "impressions": 211972, "ctr": 0.2541986677485706, "position": 3.3940795237107344, "month": "2025-11", "clicks_change": 0.3930815171023036, "impressions_change": 0.0717781732869509, "ctr_diff": 0.05862893229027433, "position_diff": -0.8502139618248914}, {"title": "2025-W48_www", "week": "2025-W48", "start_date": "2025-11-24", "end_date": "2025-11-30", "property": "www", "clicks": 18750, "impressions": 215631, "ctr": 0.08695410214672288, "position": 2.9428544058291677, "month": "2025-11", "clicks_change": -0.6520238294081622, "impressions_change": 0.01726171381125809, "ctr_diff": -0.1672445656018477, "position_diff": -0.4512251178815667}, {"title": "2025-W49_www", "week": "2025-W49", "start_date": "2025-12-01", "end_date": "2025-12-07", "property": "www", "clicks": 40286, "impressions": 255554, "ctr": 0.1576418291241773, "position": 3.257656318549786, "month": "2025-12", "clicks_change": 1.1485866666666666, "impressions_change": 0.18514499306685958, "ctr_diff": 0.07068772697745442, "position_diff": 0.3148019127206183}, {"title": "2025-W50_www", "week": "2025-W50", "start_date": "2025-12-08", "end_date": "2025-12-14", "property": "www", "clicks": 166717, "impressions": 310447, "ctr": 0.5370224225069014, "position": 3.7726132073376, "month": "2025-12", "clicks_change": 3.1383358983269622, "impressions_change": 0.21480000313045383, "ctr_diff": 0.37938059338272406, "position_diff": 0.5149568887878142}, {"title": "2025-W51_www", "week": "2025-W51", "start_date": "2025-12-15", "end_date": "2025-12-21", "property": "www", "clicks": 154149, "impressions": 348910, "ctr": 0.4418016107305609, "position": 4.59296472851004, "month": "2025-12", "clicks_change": -0.07538523365943485, "impressions_change": 0.12389554416695926, "ctr_diff": -0.09522081177634045, "position_diff": 0.8203515211724399}, {"title": "2025-W52_www", "week": "2025-W52", "start_date": "2025-12-22", "end_date": "2025-12-28", "property": "www", "clicks": 147204, "impressions": 351747, "ctr": 0.41849397436225466, "position": 4.653278137490449, "month": "2025-12", "clicks_change": -0.04505381157192068, "impressions_change": 0.008131036657017568, "ctr_diff": -0.02330763636830624, "position_diff": 0.06031340898040849}, {"title": "2026-W01_www", "week": "2026-W01", "start_date": "2025-12-29", "end_date": "2026-01-04", "property": "www", "clicks": 158306, "impressions": 371411, "ctr": 0.42622862543112616, "position": 4.6595361941142, "month": "2025-12", "clicks_change": 0.07541914621885275, "impressions_change": 0.05590381723227206, "ctr_diff": 0.007734651068871501, "position_diff": 0.006258056623751784}, {"title": "2026-W02_www", "week": "2026-W02", "start_date": "2026-01-05", "end_date": "2026-01-11", "property": "www", "clicks": 153092, "impressions": 356601, "ctr": 0.4293089475352004, "position": 4.922024587633779, "month": "2026-01", "clicks_change": -0.0329362121460968, "impressions_change": -0.039874963315572234, "ctr_diff": 0.003080322104074218, "position_diff": 0.262488393519579}, {"title": "2026-W03_www", "week": "2026-W03", "start_date": "2026-01-12", "end_date": "2026-01-18", "property": "www", "clicks": 148308, "impressions": 351330, "ctr": 0.4221330373153446, "position": 3.997591184625501, "month": "2026-01", "clicks_change": -0.03124918349750477, "impressions_change": -0.014781226076202815, "ctr_diff": -0.007175910219855808, "position_diff": -0.9244334030082784}, {"title": "2026-W04_www", "week": "2026-W04", "start_date": "2026-01-19", "end_date": "2026-01-25", "property": "www", "clicks": 153885, "impressions": 367395, "ctr": 0.4188543665537092, "position": 4.190738917426513, "month": "2026-01", "clicks_change": 0.03760417509507242, "impressions_change": 0.04572624028690974, "ctr_diff": -0.0032786707616353494, "position_diff": 0.19314773280101205}, {"title": "2026-W05_www", "week": "2026-W05", "start_date": "2026-01-26", "end_date": "2026-02-01", "property": "www", "clicks": 146750, "impressions": 344685, "ctr": 0.42575104805837216, "position": 4.866123078118501, "month": "2026-01", "clicks_change": -0.046365792637359064, "impressions_change": -0.06181357939002981, "ctr_diff": 0.006896681504662938, "position_diff": 0.6753841606919879}, {"title": "2026-W06_www", "week": "2026-W06", "start_date": "2026-02-02", "end_date": "2026-02-08", "property": "www", "clicks": 163497, "impressions": 387059, "ctr": 0.4224084700265334, "position": 4.598307160165086, "month": "2026-02", "clicks_change": 0.11411925042589438, "impressions_change": 0.12293543380187708, "ctr_diff": -0.003342578031838739, "position_diff": -0.2678159179534152}, {"title": "2026-W07_www", "week": "2026-W07", "start_date": "2026-02-09", "end_date": "2026-02-15", "property": "www", "clicks": 213937, "impressions": 507036, "ctr": 0.421936509439172, "position": 4.156374355197198, "month": "2026-02", "clicks_change": 0.3085071897343682, "impressions_change": 0.3099708313202897, "ctr_diff": -0.00047196058736143076, "position_diff": -0.44193280496788745}, {"title": "2026-W08_www", "week": "2026-W08", "start_date": "2026-02-16", "end_date": "2026-02-22", "property": "www", "clicks": 230781, "impressions": 599781, "ctr": 0.3847754430367084, "position": 4.1102330774279325, "month": "2026-02", "clicks_change": 0.07873345891547512, "impressions_change": 0.18291600596407356, "ctr_diff": -0.03716106640246358, "position_diff": -0.0461412777692658}, {"title": "2026-W09_www", "week": "2026-W09", "start_date": "2026-02-23", "end_date": "2026-03-01", "property": "www", "clicks": 247961, "impressions": 596346, "ctr": 0.4158005587360358, "position": 3.920795776534341, "month": "2026-02", "clicks_change": 0.07444287008029257, "impressions_change": -0.005727090387991617, "ctr_diff": 0.031025115699327366, "position_diff": -0.18943730089359168}, {"title": "2026-W10_www", "week": "2026-W10", "start_date": "2026-03-02", "end_date": "2026-03-08", "property": "www", "clicks": 229216, "impressions": 570685, "ctr": 0.40165064790558713, "position": 3.9473231755785845, "month": "2026-03", "clicks_change": -0.07559656558894343, "impressions_change": -0.0430303883986813, "ctr_diff": -0.014149910830448642, "position_diff": 0.026527399044243616}, {"title": "2026-W11_www", "week": "2026-W11", "start_date": "2026-03-09", "end_date": "2026-03-15", "property": "www", "clicks": 240408, "impressions": 604524, "ctr": 0.39768148162852096, "position": 3.9981359826396603, "month": "2026-03", "clicks_change": 0.04882730699427614, "impressions_change": 0.059295408149855, "ctr_diff": -0.003969166277066172, "position_diff": 0.050812807061075826}, {"title": "2026-W12_www", "week": "2026-W12", "start_date": "2026-03-16", "end_date": "2026-03-22", "property": "www", "clicks": 222469, "impressions": 551079, "ctr": 0.40369711057761226, "position": 3.8236741377854906, "month": "2026-03", "clicks_change": -0.07461898106552195, "impressions_change": -0.08840840065903091, "ctr_diff": 0.006015628949091301, "position_diff": -0.1744618448541697}, {"title": "2026-W13_www", "week": "2026-W13", "start_date": "2026-03-23", "end_date": "2026-03-29", "property": "www", "clicks": 204934, "impressions": 506864, "ctr": 0.40431752896240414, "position": 3.9231561750751207, "month": "2026-03", "clicks_change": -0.07881997042284543, "impressions_change": -0.08023350554094785, "ctr_diff": 0.0006204183847918765, "position_diff": 0.09948203728963012}, {"title": "2026-W14_www", "week": "2026-W14", "start_date": "2026-03-30", "end_date": "2026-04-05", "property": "www", "clicks": 196112, "impressions": 467606, "ctr": 0.4193958161358066, "position": 3.8836393765238393, "month": "2026-03", "clicks_change": -0.0430480056993959, "impressions_change": -0.0774527289371508, "ctr_diff": 0.015078287173402483, "position_diff": -0.03951679855128143}, {"title": "2026-W15_www", "week": "2026-W15", "start_date": "2026-04-06", "end_date": "2026-04-12", "property": "www", "clicks": 199635, "impressions": 478156, "ctr": 0.4175101849605568, "position": 3.7770927374050083, "month": "2026-04", "clicks_change": 0.01796422452476136, "impressions_change": 0.02256172931912764, "ctr_diff": -0.0018856311752498134, "position_diff": -0.106546639118831}, {"title": "2026-W16_www", "week": "2026-W16", "start_date": "2026-04-13", "end_date": "2026-04-19", "property": "www", "clicks": 26225, "impressions": 72695, "ctr": 0.3607538345140656, "position": 4.293060045395144, "month": "2026-04", "clicks_change": -0.8686352593483107, "impressions_change": -0.8479680271710488, "ctr_diff": -0.05675635044649119, "position_diff": 0.5159673079901359}], "m": [{"title": "2025-W40_m", "week": "2025-W40", "start_date": "2025-09-29", "end_date": "2025-10-05", "property": "m", "clicks": 195, "impressions": 26018, "ctr": 0.00749481128449535, "position": 3.8794701877195394, "month": "2025-09", "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-W41_m", "week": "2025-W41", "start_date": "2025-10-06", "end_date": "2025-10-12", "property": "m", "clicks": 310, "impressions": 48251, "ctr": 0.00642473731114381, "position": 3.8635690475141033, "month": "2025-10", "clicks_change": 0.5897435897435898, "impressions_change": 0.854523791221462, "ctr_diff": -0.0010700739733515395, "position_diff": -0.015901140205436093}, {"title": "2025-W42_m", "week": "2025-W42", "start_date": "2025-10-13", "end_date": "2025-10-19", "property": "m", "clicks": 321, "impressions": 107508, "ctr": 0.0029858243107489676, "position": 2.0936951341750856, "month": "2025-10", "clicks_change": 0.035483870967741936, "impressions_change": 1.2280988995046735, "ctr_diff": -0.0034389130003948426, "position_diff": -1.7698739133390178}, {"title": "2025-W43_m", "week": "2025-W43", "start_date": "2025-10-20", "end_date": "2025-10-26", "property": "m", "clicks": 331, "impressions": 112249, "ctr": 0.002948801325624282, "position": 2.0163878386576592, "month": "2025-10", "clicks_change": 0.03115264797507788, "impressions_change": 0.04409904379208989, "ctr_diff": -3.7022985124685655e-05, "position_diff": -0.07730729551742632}, {"title": "2025-W44_m", "week": "2025-W44", "start_date": "2025-10-27", "end_date": "2025-11-02", "property": "m", "clicks": 345, "impressions": 112267, "ctr": 0.00307303125584544, "position": 2.0625422230725143, "month": "2025-10", "clicks_change": 0.04229607250755287, "impressions_change": 0.00016035777601582196, "ctr_diff": 0.00012422993022115792, "position_diff": 0.04615438441485509}, {"title": "2025-W45_m", "week": "2025-W45", "start_date": "2025-11-03", "end_date": "2025-11-09", "property": "m", "clicks": 298, "impressions": 97276, "ctr": 0.0030634483325794647, "position": 2.188885403818572, "month": "2025-11", "clicks_change": -0.13623188405797101, "impressions_change": -0.13352988856921447, "ctr_diff": -9.582923265975124e-06, "position_diff": 0.12634318074605755}, {"title": "2025-W46_m", "week": "2025-W46", "start_date": "2025-11-10", "end_date": "2025-11-16", "property": "m", "clicks": 540, "impressions": 123878, "ctr": 0.004359127528697589, "position": 2.5412322227438673, "month": "2025-11", "clicks_change": 0.8120805369127517, "impressions_change": 0.2734693038365064, "ctr_diff": 0.0012956791961181244, "position_diff": 0.3523468189252954}, {"title": "2025-W47_m", "week": "2025-W47", "start_date": "2025-11-17", "end_date": "2025-11-23", "property": "m", "clicks": 1473, "impressions": 131752, "ctr": 0.011180095937822576, "position": 2.723060149512152, "month": "2025-11", "clicks_change": 1.7277777777777779, "impressions_change": 0.06356253733512003, "ctr_diff": 0.006820968409124987, "position_diff": 0.18182792676828452}, {"title": "2025-W48_m", "week": "2025-W48", "start_date": "2025-11-24", "end_date": "2025-11-30", "property": "m", "clicks": 2010, "impressions": 140466, "ctr": 0.014309512622271581, "position": 2.519066805798356, "month": "2025-11", "clicks_change": 0.3645621181262729, "impressions_change": 0.06613941344343918, "ctr_diff": 0.0031294166844490056, "position_diff": -0.20399334371379574}, {"title": "2025-W49_m", "week": "2025-W49", "start_date": "2025-12-01", "end_date": "2025-12-07", "property": "m", "clicks": 1433, "impressions": 155637, "ctr": 0.009207322166322918, "position": 2.1639448792375533, "month": "2025-12", "clicks_change": -0.2870646766169154, "impressions_change": 0.10800478407586177, "ctr_diff": -0.005102190455948664, "position_diff": -0.35512192656080277}, {"title": "2025-W50_m", "week": "2025-W50", "start_date": "2025-12-08", "end_date": "2025-12-14", "property": "m", "clicks": 1787, "impressions": 81403, "ctr": 0.0219525078928295, "position": 3.7145120195573478, "month": "2025-12", "clicks_change": 0.24703419399860432, "impressions_change": -0.47696884416944557, "ctr_diff": 0.012745185726506583, "position_diff": 1.5505671403197945}, {"title": "2025-W51_m", "week": "2025-W51", "start_date": "2025-12-15", "end_date": "2025-12-21", "property": "m", "clicks": 1550, "impressions": 177428, "ctr": 0.008735937957932231, "position": 1.8649051217886967, "month": "2025-12", "clicks_change": -0.13262451035254616, "impressions_change": 1.1796248295517364, "ctr_diff": -0.01321656993489727, "position_diff": -1.849606897768651}, {"title": "2025-W52_m", "week": "2025-W52", "start_date": "2025-12-22", "end_date": "2025-12-28", "property": "m", "clicks": 1438, "impressions": 180481, "ctr": 0.007967597697264532, "position": 1.9663240224194651, "month": "2025-12", "clicks_change": -0.07225806451612904, "impressions_change": 0.017206979732623938, "ctr_diff": -0.0007683402606676985, "position_diff": 0.10141890063076842}, {"title": "2026-W01_m", "week": "2026-W01", "start_date": "2025-12-29", "end_date": "2026-01-04", "property": "m", "clicks": 1645, "impressions": 200285, "ctr": 0.008213296053124299, "position": 1.9597917214655804, "month": "2025-12", "clicks_change": 0.14394993045897078, "impressions_change": 0.10972900194480305, "ctr_diff": 0.00024569835585976606, "position_diff": -0.006532300953884684}, {"title": "2026-W02_m", "week": "2026-W02", "start_date": "2026-01-05", "end_date": "2026-01-11", "property": "m", "clicks": 928, "impressions": 147655, "ctr": 0.00628492093054756, "position": 1.7218275488044361, "month": "2026-01", "clicks_change": -0.4358662613981763, "impressions_change": -0.2627755448485908, "ctr_diff": -0.0019283751225767382, "position_diff": -0.23796417266114434}, {"title": "2026-W03_m", "week": "2026-W03", "start_date": "2026-01-12", "end_date": "2026-01-18", "property": "m", "clicks": 537, "impressions": 98705, "ctr": 0.005440453877716428, "position": 1.477593957345945, "month": "2026-01", "clicks_change": -0.4213362068965517, "impressions_change": -0.3315160339981714, "ctr_diff": -0.0008444670528311325, "position_diff": -0.24423359145849122}, {"title": "2026-W04_m", "week": "2026-W04", "start_date": "2026-01-19", "end_date": "2026-01-25", "property": "m", "clicks": 694, "impressions": 74577, "ctr": 0.009305818147686284, "position": 2.260932949261011, "month": "2026-01", "clicks_change": 0.29236499068901306, "impressions_change": -0.24444557013322527, "ctr_diff": 0.003865364269969856, "position_diff": 0.7833389919150662}, {"title": "2026-W05_m", "week": "2026-W05", "start_date": "2026-01-26", "end_date": "2026-02-01", "property": "m", "clicks": 712, "impressions": 20294, "ctr": 0.035084261358036856, "position": 4.138599442169137, "month": "2026-01", "clicks_change": 0.025936599423631124, "impressions_change": -0.7278785684594447, "ctr_diff": 0.025778443210350572, "position_diff": 1.877666492908126}, {"title": "2026-W06_m", "week": "2026-W06", "start_date": "2026-02-02", "end_date": "2026-02-08", "property": "m", "clicks": 639, "impressions": 26209, "ctr": 0.024380937845778168, "position": 4.91566988353748, "month": "2026-02", "clicks_change": -0.10252808988764045, "impressions_change": 0.2914654577707697, "ctr_diff": -0.010703323512258688, "position_diff": 0.7770704413683429}, {"title": "2026-W07_m", "week": "2026-W07", "start_date": "2026-02-09", "end_date": "2026-02-15", "property": "m", "clicks": 700, "impressions": 28746, "ctr": 0.02435121408195923, "position": 4.506979228909293, "month": "2026-02", "clicks_change": 0.09546165884194054, "impressions_change": 0.09679880956923194, "ctr_diff": -2.9723763818937515e-05, "position_diff": -0.4086906546281872}, {"title": "2026-W08_m", "week": "2026-W08", "start_date": "2026-02-16", "end_date": "2026-02-22", "property": "m", "clicks": 753, "impressions": 69978, "ctr": 0.010760524736345709, "position": 2.6822523689259787, "month": "2026-02", "clicks_change": 0.07571428571428572, "impressions_change": 1.4343560843247756, "ctr_diff": -0.013590689345613522, "position_diff": -1.824726859983314}, {"title": "2026-W09_m", "week": "2026-W09", "start_date": "2026-02-23", "end_date": "2026-03-01", "property": "m", "clicks": 1182, "impressions": 108345, "ctr": 0.010909594351377543, "position": 3.428607131041503, "month": "2026-02", "clicks_change": 0.5697211155378487, "impressions_change": 0.5482723141558775, "ctr_diff": 0.00014906961503183443, "position_diff": 0.7463547621155242}, {"title": "2026-W10_m", "week": "2026-W10", "start_date": "2026-03-02", "end_date": "2026-03-08", "property": "m", "clicks": 1287, "impressions": 77961, "ctr": 0.016508254127063533, "position": 3.4692882368836306, "month": "2026-03", "clicks_change": 0.08883248730964467, "impressions_change": -0.2804374913470857, "ctr_diff": 0.00559865977568599, "position_diff": 0.040681105842127696}, {"title": "2026-W11_m", "week": "2026-W11", "start_date": "2026-03-09", "end_date": "2026-03-15", "property": "m", "clicks": 1460, "impressions": 47744, "ctr": 0.03057975871313673, "position": 4.482875525496219, "month": "2026-03", "clicks_change": 0.13442113442113443, "impressions_change": -0.38759123151319247, "ctr_diff": 0.014071504586073195, "position_diff": 1.0135872886125883}, {"title": "2026-W12_m", "week": "2026-W12", "start_date": "2026-03-16", "end_date": "2026-03-22", "property": "m", "clicks": 1003, "impressions": 33779, "ctr": 0.029693004529441368, "position": 4.358316298518142, "month": "2026-03", "clicks_change": -0.313013698630137, "impressions_change": -0.29249748659517427, "ctr_diff": -0.000886754183695361, "position_diff": -0.12455922697807686}, {"title": "2026-W13_m", "week": "2026-W13", "start_date": "2026-03-23", "end_date": "2026-03-29", "property": "m", "clicks": 931, "impressions": 25562, "ctr": 0.036421250293404275, "position": 4.611335642088142, "month": "2026-03", "clicks_change": -0.07178464606181456, "impressions_change": -0.24325764528257202, "ctr_diff": 0.006728245763962908, "position_diff": 0.2530193435700001}, {"title": "2026-W14_m", "week": "2026-W14", "start_date": "2026-03-30", "end_date": "2026-04-05", "property": "m", "clicks": 651, "impressions": 38193, "ctr": 0.017045008247584637, "position": 4.1291343868954495, "month": "2026-03", "clicks_change": -0.3007518796992481, "impressions_change": 0.494131914560676, "ctr_diff": -0.019376242045819638, "position_diff": -0.48220125519269263}, {"title": "2026-W15_m", "week": "2026-W15", "start_date": "2026-04-06", "end_date": "2026-04-12", "property": "m", "clicks": 716, "impressions": 32744, "ctr": 0.021866601514781335, "position": 4.025771791682576, "month": "2026-04", "clicks_change": 0.09984639016897082, "impressions_change": -0.14267012279737123, "ctr_diff": 0.004821593267196698, "position_diff": -0.10336259521287339}, {"title": "2026-W16_m", "week": "2026-W16", "start_date": "2026-04-13", "end_date": "2026-04-19", "property": "m", "clicks": 97, "impressions": 4406, "ctr": 0.022015433499773036, "position": 4.207444394008171, "month": "2026-04", "clicks_change": -0.8645251396648045, "impressions_change": -0.8654409968238456, "ctr_diff": 0.00014883198499170136, "position_diff": 0.18167260232559457}], "trade": [{"title": "2025-W40_trade", "week": "2025-W40", "start_date": "2025-09-29", "end_date": "2025-10-05", "property": "trade", "clicks": 1444, "impressions": 91708, "ctr": 0.01574562742617874, "position": 2.502459947671027, "month": "2025-09", "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-W41_trade", "week": "2025-W41", "start_date": "2025-10-06", "end_date": "2025-10-12", "property": "trade", "clicks": 1812, "impressions": 134916, "ctr": 0.013430579026950102, "position": 2.8205828390857492, "month": "2025-10", "clicks_change": 0.2548476454293629, "impressions_change": 0.4711475552841628, "ctr_diff": -0.002315048399228638, "position_diff": 0.3181228914147223}, {"title": "2025-W42_trade", "week": "2025-W42", "start_date": "2025-10-13", "end_date": "2025-10-19", "property": "trade", "clicks": 1931, "impressions": 142500, "ctr": 0.013550877192982456, "position": 2.9590397720084702, "month": "2025-10", "clicks_change": 0.06567328918322296, "impressions_change": 0.056212754602864005, "ctr_diff": 0.00012029816603235412, "position_diff": 0.138456932922721}, {"title": "2025-W43_trade", "week": "2025-W43", "start_date": "2025-10-20", "end_date": "2025-10-26", "property": "trade", "clicks": 1800, "impressions": 135096, "ctr": 0.013323858589447504, "position": 3.0841675015540413, "month": "2025-10", "clicks_change": -0.06784049715173485, "impressions_change": -0.051957894736842106, "ctr_diff": -0.0002270186035349519, "position_diff": 0.12512772954557105}, {"title": "2025-W44_trade", "week": "2025-W44", "start_date": "2025-10-27", "end_date": "2025-11-02", "property": "trade", "clicks": 1713, "impressions": 125260, "ctr": 0.013675554845920486, "position": 3.139515753555228, "month": "2025-10", "clicks_change": -0.04833333333333333, "impressions_change": -0.0728074850476698, "ctr_diff": 0.00035169625647298204, "position_diff": 0.05534825200118654}, {"title": "2025-W45_trade", "week": "2025-W45", "start_date": "2025-11-03", "end_date": "2025-11-09", "property": "trade", "clicks": 1907, "impressions": 130084, "ctr": 0.014659758310015068, "position": 3.2006976533343745, "month": "2025-11", "clicks_change": 0.11325160537069469, "impressions_change": 0.038511895257863644, "ctr_diff": 0.0009842034640945817, "position_diff": 0.061181899779146676}, {"title": "2025-W46_trade", "week": "2025-W46", "start_date": "2025-11-10", "end_date": "2025-11-16", "property": "trade", "clicks": 2565, "impressions": 95464, "ctr": 0.026868767284002348, "position": 4.77359793662601, "month": "2025-11", "clicks_change": 0.3450445726271631, "impressions_change": -0.26613572768365057, "ctr_diff": 0.01220900897398728, "position_diff": 1.5729002832916357}, {"title": "2025-W47_trade", "week": "2025-W47", "start_date": "2025-11-17", "end_date": "2025-11-23", "property": "trade", "clicks": 3266, "impressions": 136381, "ctr": 0.02394761733672579, "position": 4.851678571024016, "month": "2025-11", "clicks_change": 0.2732943469785575, "impressions_change": 0.4286118327327579, "ctr_diff": -0.002921149947276557, "position_diff": 0.07808063439800605}, {"title": "2025-W48_trade", "week": "2025-W48", "start_date": "2025-11-24", "end_date": "2025-11-30", "property": "trade", "clicks": 3209, "impressions": 139721, "ctr": 0.022967198917843417, "position": 4.327842277590327, "month": "2025-11", "clicks_change": -0.01745254133496632, "impressions_change": 0.024490214912634457, "ctr_diff": -0.0009804184188823735, "position_diff": -0.5238362934336891}, {"title": "2025-W49_trade", "week": "2025-W49", "start_date": "2025-12-01", "end_date": "2025-12-07", "property": "trade", "clicks": 2521, "impressions": 97890, "ctr": 0.02575339666973133, "position": 4.246394034124948, "month": "2025-12", "clicks_change": -0.21439700841383608, "impressions_change": -0.2993894976417289, "ctr_diff": 0.0027861977518879137, "position_diff": -0.08144824346537938}, {"title": "2025-W50_trade", "week": "2025-W50", "start_date": "2025-12-08", "end_date": "2025-12-14", "property": "trade", "clicks": 3268, "impressions": 120149, "ctr": 0.02719956054565581, "position": 4.157360974738066, "month": "2025-12", "clicks_change": 0.29631098770329234, "impressions_change": 0.2273878843599959, "ctr_diff": 0.001446163875924479, "position_diff": -0.08903305938688177}, {"title": "2025-W51_trade", "week": "2025-W51", "start_date": "2025-12-15", "end_date": "2025-12-21", "property": "trade", "clicks": 2857, "impressions": 101005, "ctr": 0.02828572842928568, "position": 5.008867596917723, "month": "2025-12", "clicks_change": -0.12576499388004897, "impressions_change": -0.15933549176439255, "ctr_diff": 0.0010861678836298697, "position_diff": 0.8515066221796568}, {"title": "2025-W52_trade", "week": "2025-W52", "start_date": "2025-12-22", "end_date": "2025-12-28", "property": "trade", "clicks": 2848, "impressions": 99430, "ctr": 0.028643266619732474, "position": 4.965457240631108, "month": "2025-12", "clicks_change": -0.003150157507875394, "impressions_change": -0.015593287461016781, "ctr_diff": 0.00035753819044679475, "position_diff": -0.04341035628661505}, {"title": "2026-W01_trade", "week": "2026-W01", "start_date": "2025-12-29", "end_date": "2026-01-04", "property": "trade", "clicks": 3205, "impressions": 91955, "ctr": 0.03485400467620031, "position": 5.811308471336751, "month": "2025-12", "clicks_change": 0.12535112359550563, "impressions_change": -0.0751785175500352, "ctr_diff": 0.006210738056467838, "position_diff": 0.8458512307056436}, {"title": "2026-W02_trade", "week": "2026-W02", "start_date": "2026-01-05", "end_date": "2026-01-11", "property": "trade", "clicks": 3182, "impressions": 118697, "ctr": 0.02680775419766296, "position": 5.572810927436899, "month": "2026-01", "clicks_change": -0.007176287051482059, "impressions_change": 0.2908161600782992, "ctr_diff": -0.008046250478537353, "position_diff": -0.238497543899852}, {"title": "2026-W03_trade", "week": "2026-W03", "start_date": "2026-01-12", "end_date": "2026-01-18", "property": "trade", "clicks": 2621, "impressions": 105263, "ctr": 0.024899537349306024, "position": 4.470274423013376, "month": "2026-01", "clicks_change": -0.17630421118793213, "impressions_change": -0.11317893459817856, "ctr_diff": -0.001908216848356934, "position_diff": -1.1025365044235231}, {"title": "2026-W04_trade", "week": "2026-W04", "start_date": "2026-01-19", "end_date": "2026-01-25", "property": "trade", "clicks": 2844, "impressions": 86393, "ctr": 0.032919333742317085, "position": 5.640668764269117, "month": "2026-01", "clicks_change": 0.08508202975963373, "impressions_change": -0.17926526889790334, "ctr_diff": 0.00801979639301106, "position_diff": 1.170394341255741}, {"title": "2026-W05_trade", "week": "2026-W05", "start_date": "2026-01-26", "end_date": "2026-02-01", "property": "trade", "clicks": 2664, "impressions": 93546, "ctr": 0.028477968058495284, "position": 6.801411360970818, "month": "2026-01", "clicks_change": -0.06329113924050633, "impressions_change": 0.08279605986596136, "ctr_diff": -0.0044413656838218005, "position_diff": 1.1607425967017013}, {"title": "2026-W06_trade", "week": "2026-W06", "start_date": "2026-02-02", "end_date": "2026-02-08", "property": "trade", "clicks": 3065, "impressions": 98994, "ctr": 0.030961472412469444, "position": 6.150799500471504, "month": "2026-02", "clicks_change": 0.15052552552552553, "impressions_change": 0.058238727470976845, "ctr_diff": 0.00248350435397416, "position_diff": -0.6506118604993141}, {"title": "2026-W07_trade", "week": "2026-W07", "start_date": "2026-02-09", "end_date": "2026-02-15", "property": "trade", "clicks": 2053, "impressions": 60664, "ctr": 0.033842146907556374, "position": 6.772526181031493, "month": "2026-02", "clicks_change": -0.33017944535073407, "impressions_change": -0.3871951835464776, "ctr_diff": 0.0028806744950869295, "position_diff": 0.6217266805599886}, {"title": "2026-W08_trade", "week": "2026-W08", "start_date": "2026-02-16", "end_date": "2026-02-22", "property": "trade", "clicks": 324, "impressions": 12406, "ctr": 0.026116395292600354, "position": 8.335660374618353, "month": "2026-02", "clicks_change": -0.8421821724305893, "impressions_change": -0.7954965053408941, "ctr_diff": -0.00772575161495602, "position_diff": 1.5631341935868601}, {"title": "2026-W09_trade", "week": "2026-W09", "start_date": "2026-02-23", "end_date": "2026-03-01", "property": "trade", "clicks": 154, "impressions": 6041, "ctr": 0.02549246813441483, "position": 8.18686284983833, "month": "2026-02", "clicks_change": -0.5246913580246914, "impressions_change": -0.5130581976463002, "ctr_diff": -0.0006239271581855235, "position_diff": -0.14879752478002395}, {"title": "2026-W10_trade", "week": "2026-W10", "start_date": "2026-03-02", "end_date": "2026-03-08", "property": "trade", "clicks": 83, "impressions": 4071, "ctr": 0.020388111029231146, "position": 7.917291158128416, "month": "2026-03", "clicks_change": -0.461038961038961, "impressions_change": -0.32610494951167024, "ctr_diff": -0.005104357105183685, "position_diff": -0.26957169170991335}, {"title": "2026-W11_trade", "week": "2026-W11", "start_date": "2026-03-09", "end_date": "2026-03-15", "property": "trade", "clicks": 85, "impressions": 4105, "ctr": 0.020706455542021926, "position": 9.704918734550429, "month": "2026-03", "clicks_change": 0.024096385542168676, "impressions_change": 0.008351756325227217, "ctr_diff": 0.00031834451279078024, "position_diff": 1.7876275764220129}, {"title": "2026-W12_trade", "week": "2026-W12", "start_date": "2026-03-16", "end_date": "2026-03-22", "property": "trade", "clicks": 104, "impressions": 3682, "ctr": 0.028245518739815317, "position": 7.837288061207388, "month": "2026-03", "clicks_change": 0.2235294117647059, "impressions_change": -0.10304506699147381, "ctr_diff": 0.007539063197793391, "position_diff": -1.867630673343041}, {"title": "2026-W13_trade", "week": "2026-W13", "start_date": "2026-03-23", "end_date": "2026-03-29", "property": "trade", "clicks": 125, "impressions": 3291, "ctr": 0.03798237617745366, "position": 7.535999785856083, "month": "2026-03", "clicks_change": 0.20192307692307693, "impressions_change": -0.10619228680065182, "ctr_diff": 0.009736857437638344, "position_diff": -0.30128827535130487}, {"title": "2026-W14_trade", "week": "2026-W14", "start_date": "2026-03-30", "end_date": "2026-04-05", "property": "trade", "clicks": 128, "impressions": 4118, "ctr": 0.03108305002428363, "position": 6.316555752828053, "month": "2026-03", "clicks_change": 0.024, "impressions_change": 0.2512914007900334, "ctr_diff": -0.0068993261531700295, "position_diff": -1.2194440330280294}, {"title": "2026-W15_trade", "week": "2026-W15", "start_date": "2026-04-06", "end_date": "2026-04-12", "property": "trade", "clicks": 84, "impressions": 1967, "ctr": 0.042704626334519574, "position": 6.518328142097485, "month": "2026-04", "clicks_change": -0.34375, "impressions_change": -0.5223409422049539, "ctr_diff": 0.011621576310235943, "position_diff": 0.20177238926943186}, {"title": "2026-W16_trade", "week": "2026-W16", "start_date": "2026-04-13", "end_date": "2026-04-19", "property": "trade", "clicks": 2, "impressions": 117, "ctr": 0.017094017094017096, "position": 9.367521367521368, "month": "2026-04", "clicks_change": -0.9761904761904762, "impressions_change": -0.9405185561769192, "ctr_diff": -0.02561060924050248, "position_diff": 2.8491932254238828}]};
+    const chartDataMap = {"root": {"labels": ["2026-01-26", "2026-02-02", "2026-02-09", "2026-02-16", "2026-02-23", "2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23", "2026-03-30", "2026-04-06", "2026-04-13"], "clicks": [150528, 167566, 216974, 232211, 249612, 230940, 242287, 223921, 206246, 197165, 200635, 26351], "impressions": [411428, 460757, 557448, 631960, 646951, 602762, 634246, 571992, 523592, 483201, 492885, 74581], "ctr": [36.59, 36.37, 38.92, 36.74, 38.58, 38.31, 38.2, 39.15, 39.39, 40.8, 40.71, 35.33], "position": [5.53, 5.2, 4.5, 4.28, 4.15, 4.08, 4.09, 3.86, 3.96, 3.95, 3.8, 4.31]}, "www": {"labels": ["2026-01-26", "2026-02-02", "2026-02-09", "2026-02-16", "2026-02-23", "2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23", "2026-03-30", "2026-04-06", "2026-04-13"], "clicks": [146750, 163497, 213937, 230781, 247961, 229216, 240408, 222469, 204934, 196112, 199635, 26225], "impressions": [344685, 387059, 507036, 599781, 596346, 570685, 604524, 551079, 506864, 467606, 478156, 72695], "ctr": [42.58, 42.24, 42.19, 38.48, 41.58, 40.17, 39.77, 40.37, 40.43, 41.94, 41.75, 36.08], "position": [4.87, 4.6, 4.16, 4.11, 3.92, 3.95, 4.0, 3.82, 3.92, 3.88, 3.78, 4.29]}, "m": {"labels": ["2026-01-26", "2026-02-02", "2026-02-09", "2026-02-16", "2026-02-23", "2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23", "2026-03-30", "2026-04-06", "2026-04-13"], "clicks": [712, 639, 700, 753, 1182, 1287, 1460, 1003, 931, 651, 716, 97], "impressions": [20294, 26209, 28746, 69978, 108345, 77961, 47744, 33779, 25562, 38193, 32744, 4406], "ctr": [3.51, 2.44, 2.44, 1.08, 1.09, 1.65, 3.06, 2.97, 3.64, 1.7, 2.19, 2.2], "position": [4.14, 4.92, 4.51, 2.68, 3.43, 3.47, 4.48, 4.36, 4.61, 4.13, 4.03, 4.21]}, "trade": {"labels": ["2026-01-26", "2026-02-02", "2026-02-09", "2026-02-16", "2026-02-23", "2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23", "2026-03-30", "2026-04-06", "2026-04-13"], "clicks": [2664, 3065, 2053, 324, 154, 83, 85, 104, 125, 128, 84, 2], "impressions": [93546, 98994, 60664, 12406, 6041, 4071, 4105, 3682, 3291, 4118, 1967, 117], "ctr": [2.85, 3.1, 3.38, 2.61, 2.55, 2.04, 2.07, 2.82, 3.8, 3.11, 4.27, 1.71], "position": [6.8, 6.15, 6.77, 8.34, 8.19, 7.92, 9.7, 7.84, 7.54, 6.32, 6.52, 9.37]}};
+
+    let currentProperty = "root";
+    let clicksChart = null;
+    let ctrPositionChart = null;
+
+    function fmtInt(v) {
+      if (v === null || v === undefined) return "-";
+      return Number(v).toLocaleString("ko-KR");
+    }
+
+    function fmtPct(v) {
+      if (v === null || v === undefined) return "-";
+      return (Number(v) * 100).toFixed(1) + "%";
+    }
+
+    function fmtNum(v, digits = 1) {
+      if (v === null || v === undefined) return "-";
+      return Number(v).toFixed(digits);
+    }
+
+    function deltaClass(value, reverse = false) {
+      if (value === null || value === undefined) return "neutral";
+
+      if (!reverse) {
+        if (value > 0) return "up";
+        if (value < 0) return "down";
+      } else {
+        if (value < 0) return "up";
+        if (value > 0) return "down";
+      }
+      return "neutral";
+    }
+
+    function fmtPctChange(v) {
+      if (v === null || v === undefined) return "—";
+      if (v > 0) return "▲ " + Math.abs(v * 100).toFixed(1) + "%";
+      if (v < 0) return "▼ " + Math.abs(v * 100).toFixed(1) + "%";
+      return "0.0%";
+    }
+
+    function fmtCtrDiff(v) {
+      if (v === null || v === undefined) return "—";
+      if (v > 0) return "▲ " + Math.abs(v * 100).toFixed(1) + "%p";
+      if (v < 0) return "▼ " + Math.abs(v * 100).toFixed(1) + "%p";
+      return "0.0%p";
+    }
+
+    function fmtPositionDiff(v) {
+      if (v === null || v === undefined) return "—";
+      if (v < 0) return "▼ 개선 " + Math.abs(v).toFixed(1);
+      if (v > 0) return "▲ 악화 " + Math.abs(v).toFixed(1);
+      return "유지";
+    }
+
+    function buildSummaryText(row) {
+      if (!row) return "데이터가 없습니다.";
+
+      const parts = [];
+
+      if (row.clicks_change !== null && row.clicks_change !== undefined) {
+        parts.push(row.clicks_change > 0 ? "클릭 증가" : row.clicks_change < 0 ? "클릭 감소" : "클릭 유지");
+      }
+      if (row.impressions_change !== null && row.impressions_change !== undefined) {
+        parts.push(row.impressions_change > 0 ? "노출 확대" : row.impressions_change < 0 ? "노출 감소" : "노출 유지");
+      }
+      if (row.ctr_diff !== null && row.ctr_diff !== undefined) {
+        parts.push(row.ctr_diff > 0 ? "CTR 상승" : row.ctr_diff < 0 ? "CTR 하락" : "CTR 유지");
+      }
+      if (row.position_diff !== null && row.position_diff !== undefined) {
+        parts.push(row.position_diff < 0 ? "평균 순위 개선" : row.position_diff > 0 ? "평균 순위 악화" : "평균 순위 유지");
+      }
+
+      return row.start_date + " ~ " + row.end_date + " 기준 " + parts.join(" · ");
+    }
+
+    function renderCards(rows) {
+      const latest = rows.length ? rows[rows.length - 1] : null;
+
+      document.getElementById("report-week").textContent = latest ? latest.week : "-";
+      document.getElementById("report-period").textContent = latest ? (latest.start_date + " ~ " + latest.end_date) : "-";
+
+      document.getElementById("clicks-label").textContent = latest ? latest.start_date + " 클릭" : "클릭";
+      document.getElementById("clicks-value").textContent = latest ? fmtInt(latest.clicks) : "-";
+      document.getElementById("clicks-delta").textContent = latest ? fmtPctChange(latest.clicks_change) : "-";
+      document.getElementById("clicks-delta").className = "card-delta " + (latest ? deltaClass(latest.clicks_change) : "neutral");
+
+      document.getElementById("impressions-label").textContent = latest ? latest.start_date + " 노출" : "노출";
+      document.getElementById("impressions-value").textContent = latest ? fmtInt(latest.impressions) : "-";
+      document.getElementById("impressions-delta").textContent = latest ? fmtPctChange(latest.impressions_change) : "-";
+      document.getElementById("impressions-delta").className = "card-delta " + (latest ? deltaClass(latest.impressions_change) : "neutral");
+
+      document.getElementById("ctr-label").textContent = latest ? latest.start_date + " CTR" : "CTR";
+      document.getElementById("ctr-value").textContent = latest ? fmtPct(latest.ctr) : "-";
+      document.getElementById("ctr-delta").textContent = latest ? fmtCtrDiff(latest.ctr_diff) : "-";
+      document.getElementById("ctr-delta").className = "card-delta " + (latest ? deltaClass(latest.ctr_diff) : "neutral");
+
+      document.getElementById("position-label").textContent = latest ? latest.start_date + " 평균 순위" : "평균 순위";
+      document.getElementById("position-value").textContent = latest ? fmtNum(latest.position, 1) : "-";
+      document.getElementById("position-delta").textContent = latest ? fmtPositionDiff(latest.position_diff) : "-";
+      document.getElementById("position-delta").className = "card-delta " + (latest ? deltaClass(latest.position_diff, true) : "neutral");
+
+      document.getElementById("summary-text").textContent = buildSummaryText(latest);
+    }
+
+    function renderTable(rows) {
+      const tbody = document.getElementById("detail-tbody");
+      tbody.innerHTML = "";
+
+      const sorted = [...rows].slice().reverse();
+
+      sorted.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.week}</td>
+          <td>${row.start_date}</td>
+          <td>${row.end_date}</td>
+          <td>${fmtInt(row.clicks)}</td>
+          <td>${fmtInt(row.impressions)}</td>
+          <td>${fmtPct(row.ctr)}</td>
+          <td>${fmtNum(row.position, 1)}</td>
+          <td class="${deltaClass(row.clicks_change)}">${fmtPctChange(row.clicks_change)}</td>
+          <td class="${deltaClass(row.impressions_change)}">${fmtPctChange(row.impressions_change)}</td>
+          <td class="${deltaClass(row.ctr_diff)}">${fmtCtrDiff(row.ctr_diff)}</td>
+          <td class="${deltaClass(row.position_diff, true)}">${fmtPositionDiff(row.position_diff)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function destroyCharts() {
+      if (clicksChart) clicksChart.destroy();
+      if (ctrPositionChart) ctrPositionChart.destroy();
+    }
+
+    function renderCharts(propertyName) {
+      destroyCharts();
+
+      const cData = chartDataMap[propertyName] || { labels: [], clicks: [], impressions: [], ctr: [], position: [] };
+
+      const ctx1 = document.getElementById("chartClicks").getContext("2d");
+      clicksChart = new Chart(ctx1, {
+        type: "bar",
+        data: {
+          labels: cData.labels,
+          datasets: [
+            {
+              type: "bar",
+              label: "Clicks",
+              data: cData.clicks,
+              backgroundColor: "rgba(96, 165, 250, 0.55)",
+              borderColor: "rgba(96, 165, 250, 1)",
+              borderWidth: 1,
+              yAxisID: "y"
+            },
+            {
+              type: "line",
+              label: "Impressions",
+              data: cData.impressions,
+              borderColor: "rgba(244, 114, 182, 1)",
+              backgroundColor: "rgba(244, 114, 182, 0.12)",
+              tension: 0.3,
+              yAxisID: "y1"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: "#ffffff" } }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#cbd5e1" },
+              grid: { color: "rgba(255,255,255,0.05)" }
+            },
+            y: {
+              position: "left",
+              ticks: { color: "#cbd5e1" },
+              grid: { color: "rgba(255,255,255,0.05)" },
+              title: { display: true, text: "Clicks", color: "#cbd5e1" }
+            },
+            y1: {
+              position: "right",
+              ticks: { color: "#cbd5e1" },
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: "Impressions", color: "#cbd5e1" }
+            }
+          }
+        }
+      });
+
+      const ctx2 = document.getElementById("chartCtrPosition").getContext("2d");
+      ctrPositionChart = new Chart(ctx2, {
+        type: "line",
+        data: {
+          labels: cData.labels,
+          datasets: [
+            {
+              label: "CTR (%)",
+              data: cData.ctr,
+              borderColor: "rgba(59, 130, 246, 1)",
+              backgroundColor: "rgba(59, 130, 246, 0.15)",
+              tension: 0.3,
+              yAxisID: "y"
+            },
+            {
+              label: "Position",
+              data: cData.position,
+              borderColor: "rgba(244, 63, 94, 1)",
+              backgroundColor: "rgba(244, 63, 94, 0.12)",
+              tension: 0.3,
+              yAxisID: "y1"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: "#ffffff" } }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#cbd5e1" },
+              grid: { color: "rgba(255,255,255,0.05)" }
+            },
+            y: {
+              position: "left",
+              ticks: { color: "#cbd5e1" },
+              grid: { color: "rgba(255,255,255,0.05)" },
+              title: { display: true, text: "CTR (%)", color: "#cbd5e1" }
+            },
+            y1: {
+              position: "right",
+              reverse: true,
+              ticks: { color: "#cbd5e1" },
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: "Position", color: "#cbd5e1" }
+            }
+          }
+        }
+      });
+    }
+
+    function renderProperty(propertyName) {
+      currentProperty = propertyName;
+
+      const completedRows = weeklyDataCompleted[propertyName] || [];
+      const allRows = weeklyDataAll[propertyName] || [];
+
+      document.querySelectorAll(".property-tab").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.property === propertyName);
+      });
+
+      renderCards(completedRows);
+      renderTable(allRows);
+      renderCharts(propertyName);
+    }
+
+    document.querySelectorAll(".property-tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        renderProperty(btn.dataset.property);
+      });
+    });
+
+    renderProperty(currentProperty);
+  </script>
+</body>
+</html>
