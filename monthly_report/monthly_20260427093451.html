@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>월간 GSC 리포트</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Malgun Gothic", sans-serif;
+      background: #07122d;
+      color: #ffffff;
+    }
+    .wrap {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 22px 40px;
+    }
+    .report-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 10px 0;
+    }
+    .report-sub {
+      font-size: 14px;
+      color: #cbd5e1;
+      margin-bottom: 24px;
+      line-height: 1.7;
+    }
+    .top-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .top-tab {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .top-tab.active {
+      background: rgba(99,102,241,0.20);
+      border-color: rgba(129,140,248,0.45);
+    }
+    .property-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .property-tab {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      border-radius: 999px;
+      padding: 9px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      min-width: 54px;
+    }
+    .property-tab.active {
+      background: #0f172a;
+      border-color: rgba(255,255,255,0.18);
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 20px;
+      min-height: 132px;
+    }
+    .card-label {
+      font-size: 14px;
+      color: #cbd5e1;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .card-value {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .card-delta {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .up {
+      color: #ef4444;
+    }
+    .down {
+      color: #3b82f6;
+    }
+    .neutral {
+      color: #94a3b8;
+    }
+    .section {
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 100%;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin: 0 0 16px 0;
+    }
+    .summary-box {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px 18px;
+      color: #fff;
+      font-weight: 700;
+    }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      width: 100%;
+    }
+    .chart-grid > * {
+      min-width: 0;
+    }
+    .chart-box {
+      background: rgba(255,255,255,0.04);
+      border-radius: 14px;
+      padding: 14px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 100%;
+    }
+    .chart-canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 320px;
+      min-width: 0;
+    }
+    .chart-canvas-wrap canvas {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      width: 100%;
+      max-width: 100%;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1180px;
+    }
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      text-align: center;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    th {
+      color: #cbd5e1;
+      font-weight: 800;
+      background: rgba(255,255,255,0.04);
+    }
+    td {
+      color: #fff;
+    }
+    .table-note {
+      margin-top: 12px;
+      color: #cbd5e1;
+      font-size: 13px;
+    }
+    .footer {
+      margin-top: 12px;
+      text-align: right;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1024px) {
+      .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .wrap {
+        padding: 12px 10px 20px;
+      }
+
+      .section {
+        padding: 12px;
+        margin-bottom: 14px;
+        border-radius: 14px;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .card {
+        padding: 14px;
+        min-height: auto;
+        border-radius: 14px;
+      }
+
+      .card-label {
+        font-size: 12px;
+      }
+
+      .card-value {
+        font-size: 20px;
+        margin-bottom: 6px;
+      }
+
+      .card-delta {
+        font-size: 12px;
+      }
+
+      .section-title {
+        font-size: 16px;
+        margin-bottom: 12px;
+      }
+
+      .summary-box {
+        padding: 12px 14px;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .chart-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .chart-box {
+        padding: 10px;
+        border-radius: 12px;
+      }
+
+      .chart-canvas-wrap {
+        height: 220px;
+      }
+
+      th, td {
+        font-size: 11px;
+        padding: 8px 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="report-title">월간 GSC 리포트</h1>
+    <div class="report-sub">
+      기준 월: <span id="report-month">2026-03</span><br>
+      기간: <span id="report-period">2026-03-01 ~ 2026-03-31</span><br>
+      생성일: 2026-04-27 09:34
+    </div>
+
+    <div class="top-tabs">
+      <a href="https://hyoeun-mkt.github.io/gsc/daily_report/index.html" class="top-tab">일간</a>
+      <a href="https://hyoeun-mkt.github.io/gsc/weekly_report/index.html" class="top-tab">주간</a>
+      <a href="javascript:void(0)" class="top-tab active">월간</a>
+      <a href="https://hyoeun-mkt.github.io/gsc/query_report/index.html" class="top-tab">쿼리</a>
+    </div>
+
+    <div class="property-tabs">
+      <button class="property-tab active" data-property="root">root</button>
+      <button class="property-tab" data-property="www">www</button>
+      <button class="property-tab" data-property="m">m</button>
+      <button class="property-tab" data-property="trade">trade</button>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-label" id="clicks-label">클릭</div>
+        <div class="card-value" id="clicks-value">-</div>
+        <div class="card-delta" id="clicks-delta">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="impressions-label">노출</div>
+        <div class="card-value" id="impressions-value">-</div>
+        <div class="card-delta" id="impressions-delta">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="ctr-label">CTR</div>
+        <div class="card-value" id="ctr-value">-</div>
+        <div class="card-delta" id="ctr-delta">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label" id="position-label">평균 순위</div>
+        <div class="card-value" id="position-value">-</div>
+        <div class="card-delta" id="position-delta">-</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">요약</h2>
+      <div class="summary-box" id="summary-text">-</div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">최근 12개월 추이</h2>
+      <div class="chart-grid">
+        <div class="chart-box">
+          <div class="chart-canvas-wrap">
+            <canvas id="chartClicks"></canvas>
+          </div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-canvas-wrap">
+            <canvas id="chartCtrPosition"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">월간 상세 데이터</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>month</th>
+              <th>start_date</th>
+              <th>end_date</th>
+              <th>클릭</th>
+              <th>노출</th>
+              <th>CTR</th>
+              <th>평균 순위</th>
+              <th>클릭 증감</th>
+              <th>노출 증감</th>
+              <th>CTR 변화</th>
+              <th>순위 변화</th>
+            </tr>
+          </thead>
+          <tbody id="detail-tbody"></tbody>
+        </table>
+      </div>
+      <div class="table-note">증감 및 변화는 전월 대비 수치</div>
+    </div>
+
+    <div class="footer">Generated by GSC automation</div>
+  </div>
+
+  <script>
+    const monthlyDataCompleted = {"root": [{"title": "2025-10_root", "month": "2025-10", "start_date": "2025-10-01", "end_date": "2025-10-31", "property": "root", "clicks": 151105, "impressions": 929408, "ctr": 0.16258198767387413, "position": 5.01, "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-11_root", "month": "2025-11", "start_date": "2025-11-01", "end_date": "2025-11-30", "property": "root", "clicks": 208134, "impressions": 1258457, "ctr": 0.16538824926080112, "position": 5.16, "clicks_change": 0.3774130571456934, "impressions_change": 0.35404149738328056, "ctr_diff": 0.0028062615869269836, "position_diff": 0.15000000000000036}, {"title": "2025-12_root", "month": "2025-12", "start_date": "2025-12-01", "end_date": "2025-12-31", "property": "root", "clicks": 633637, "impressions": 1793207, "ctr": 0.35335407457142426, "position": 4.71, "clicks_change": 2.0443704536500524, "impressions_change": 0.4249251265637205, "ctr_diff": 0.18796582531062314, "position_diff": -0.4500000000000002}, {"title": "2026-01_root", "month": "2026-01", "start_date": "2026-01-01", "end_date": "2026-01-31", "property": "root", "clicks": 692329, "impressions": 1901622, "ctr": 0.3640728809405865, "position": 4.95, "clicks_change": 0.09262716665851269, "impressions_change": 0.0604587200473788, "ctr_diff": 0.010718806369162226, "position_diff": 0.2400000000000002}, {"title": "2026-02_root", "month": "2026-02", "start_date": "2026-02-01", "end_date": "2026-02-28", "property": "root", "clicks": 851168, "impressions": 2260404, "ctr": 0.37655569535357397, "position": 4.65, "clicks_change": 0.22942704985635443, "impressions_change": 0.1886715656423832, "ctr_diff": 0.012482814412987486, "position_diff": -0.2999999999999998}, {"title": "2026-03_root", "month": "2026-03", "start_date": "2026-03-01", "end_date": "2026-03-31", "property": "root", "clicks": 999028, "impressions": 2576273, "ctr": 0.38778033228621345, "position": 4.03, "clicks_change": 0.173714237377345, "impressions_change": 0.13974006416552084, "ctr_diff": 0.011224636932639476, "position_diff": -0.6200000000000001}], "www": [{"title": "2025-10_www", "month": "2025-10", "start_date": "2025-10-01", "end_date": "2025-10-31", "property": "www", "clicks": 2334, "impressions": 506812, "ctr": 0.004605257965478323, "position": 1.99, "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-11_www", "month": "2025-11", "start_date": "2025-11-01", "end_date": "2025-11-30", "property": "www", "clicks": 140535, "impressions": 831171, "ctr": 0.16908073067996837, "position": 3.79, "clicks_change": 59.2120822622108, "impressions_change": 0.6399986582795988, "ctr_diff": 0.16447547271449006, "position_diff": 1.8}, {"title": "2025-12_www", "month": "2025-12", "start_date": "2025-12-01", "end_date": "2025-12-31", "property": "www", "clicks": 574400, "impressions": 1422720, "ctr": 0.4037336932073774, "position": 4.11, "clicks_change": 3.0872380545771514, "impressions_change": 0.7117055335183735, "ctr_diff": 0.23465296252740903, "position_diff": 0.3200000000000003}, {"title": "2026-01_www", "month": "2026-01", "start_date": "2026-01-01", "end_date": "2026-01-31", "property": "www", "clicks": 673978, "impressions": 1584357, "ctr": 0.4253952865421114, "position": 4.46, "clicks_change": 0.1733600278551532, "impressions_change": 0.11361125168690958, "ctr_diff": 0.021661593334733997, "position_diff": 0.34999999999999964}, {"title": "2026-02_www", "month": "2026-02", "start_date": "2026-02-01", "end_date": "2026-02-28", "property": "www", "clicks": 840682, "impressions": 2048045, "ctr": 0.41048023847132264, "position": 4.28, "clicks_change": 0.24734338509565595, "impressions_change": 0.2926663624423031, "ctr_diff": -0.01491504807078875, "position_diff": -0.17999999999999972}, {"title": "2026-03_www", "month": "2026-03", "start_date": "2026-03-01", "end_date": "2026-03-31", "property": "www", "clicks": 992096, "impressions": 2465222, "ctr": 0.40243677851325355, "position": 3.95, "clicks_change": 0.18010853093083948, "impressions_change": 0.20369523130595274, "ctr_diff": -0.008043459958069099, "position_diff": -0.33000000000000007}], "m": [{"title": "2025-10_m", "month": "2025-10", "start_date": "2025-10-01", "end_date": "2025-10-31", "property": "m", "clicks": 1405, "impressions": 372140, "ctr": 0.0037754608480679314, "position": 2.76, "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-11_m", "month": "2025-11", "start_date": "2025-11-01", "end_date": "2025-11-30", "property": "m", "clicks": 4418, "impressions": 527525, "ctr": 0.00837495853277096, "position": 2.46, "clicks_change": 2.1444839857651243, "impressions_change": 0.41754447251034554, "ctr_diff": 0.004599497684703028, "position_diff": -0.2999999999999998}, {"title": "2025-12_m", "month": "2025-12", "start_date": "2025-12-01", "end_date": "2025-12-31", "property": "m", "clicks": 7010, "impressions": 682710, "ctr": 0.010267902916318789, "position": 2.39, "clicks_change": 0.5866908103214125, "impressions_change": 0.2941756314866594, "ctr_diff": 0.0018929443835478295, "position_diff": -0.06999999999999984}, {"title": "2026-01_m", "month": "2026-01", "start_date": "2026-01-01", "end_date": "2026-01-31", "property": "m", "clicks": 3627, "impressions": 451542, "ctr": 0.00803247538434963, "position": 2.14, "clicks_change": -0.4825962910128388, "impressions_change": -0.33860350661334976, "ctr_diff": -0.0022354275319691596, "position_diff": -0.25}, {"title": "2026-02_m", "month": "2026-02", "start_date": "2026-02-01", "end_date": "2026-02-28", "property": "m", "clicks": 3209, "impressions": 220706, "ctr": 0.014539704403142643, "position": 4.06, "clicks_change": -0.11524676040805074, "impressions_change": -0.5112171182304193, "ctr_diff": 0.006507229018793014, "position_diff": 1.9199999999999995}, {"title": "2026-03_m", "month": "2026-03", "start_date": "2026-03-01", "end_date": "2026-03-31", "property": "m", "clicks": 5057, "impressions": 206672, "ctr": 0.024468723387783543, "position": 4.31, "clicks_change": 0.5758803365534434, "impressions_change": -0.06358685309869237, "ctr_diff": 0.0099290189846409, "position_diff": 0.25}], "trade": [{"title": "2025-10_trade", "month": "2025-10", "start_date": "2025-10-01", "end_date": "2025-10-31", "property": "trade", "clicks": 8163, "impressions": 590109, "ctr": 0.013833037625252283, "position": 2.9, "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-11_trade", "month": "2025-11", "start_date": "2025-11-01", "end_date": "2025-11-30", "property": "trade", "clicks": 11484, "impressions": 541021, "ctr": 0.02122653279632399, "position": 4.22, "clicks_change": 0.40683572216097025, "impressions_change": -0.08318463199171679, "ctr_diff": 0.007393495171071705, "position_diff": 1.3199999999999998}, {"title": "2025-12_trade", "month": "2025-12", "start_date": "2025-12-01", "end_date": "2025-12-31", "property": "trade", "clicks": 12691, "impressions": 453337, "ctr": 0.027994626514050255, "position": 4.7, "clicks_change": 0.10510275165447579, "impressions_change": -0.162071342886875, "ctr_diff": 0.006768093717726267, "position_diff": 0.4800000000000004}, {"title": "2026-01_trade", "month": "2026-01", "start_date": "2026-01-01", "end_date": "2026-01-31", "property": "trade", "clicks": 12935, "impressions": 446500, "ctr": 0.02896976483762598, "position": 5.48, "clicks_change": 0.01922622330785596, "impressions_change": -0.015081495664373303, "ctr_diff": 0.0009751383235757256, "position_diff": 0.7800000000000002}, {"title": "2026-02_trade", "month": "2026-02", "start_date": "2026-02-01", "end_date": "2026-02-28", "property": "trade", "clicks": 5957, "impressions": 191707, "ctr": 0.031073461062976312, "position": 7.4, "clicks_change": -0.5394665635871666, "impressions_change": -0.5706450167973124, "ctr_diff": 0.002103696225350331, "position_diff": 1.92}, {"title": "2026-03_trade", "month": "2026-03", "start_date": "2026-03-01", "end_date": "2026-03-31", "property": "trade", "clicks": 460, "impressions": 17493, "ctr": 0.026296232778825816, "position": 8.18, "clicks_change": -0.9227799227799228, "impressions_change": -0.9087513757974409, "ctr_diff": -0.004777228284150496, "position_diff": 0.7799999999999994}]};
+    const monthlyDataAll = {"root": [{"title": "2025-10_root", "month": "2025-10", "start_date": "2025-10-01", "end_date": "2025-10-31", "property": "root", "clicks": 151105, "impressions": 929408, "ctr": 0.16258198767387413, "position": 5.01, "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-11_root", "month": "2025-11", "start_date": "2025-11-01", "end_date": "2025-11-30", "property": "root", "clicks": 208134, "impressions": 1258457, "ctr": 0.16538824926080112, "position": 5.16, "clicks_change": 0.3774130571456934, "impressions_change": 0.35404149738328056, "ctr_diff": 0.0028062615869269836, "position_diff": 0.15000000000000036}, {"title": "2025-12_root", "month": "2025-12", "start_date": "2025-12-01", "end_date": "2025-12-31", "property": "root", "clicks": 633637, "impressions": 1793207, "ctr": 0.35335407457142426, "position": 4.71, "clicks_change": 2.0443704536500524, "impressions_change": 0.4249251265637205, "ctr_diff": 0.18796582531062314, "position_diff": -0.4500000000000002}, {"title": "2026-01_root", "month": "2026-01", "start_date": "2026-01-01", "end_date": "2026-01-31", "property": "root", "clicks": 692329, "impressions": 1901622, "ctr": 0.3640728809405865, "position": 4.95, "clicks_change": 0.09262716665851269, "impressions_change": 0.0604587200473788, "ctr_diff": 0.010718806369162226, "position_diff": 0.2400000000000002}, {"title": "2026-02_root", "month": "2026-02", "start_date": "2026-02-01", "end_date": "2026-02-28", "property": "root", "clicks": 851168, "impressions": 2260404, "ctr": 0.37655569535357397, "position": 4.65, "clicks_change": 0.22942704985635443, "impressions_change": 0.1886715656423832, "ctr_diff": 0.012482814412987486, "position_diff": -0.2999999999999998}, {"title": "2026-03_root", "month": "2026-03", "start_date": "2026-03-01", "end_date": "2026-03-31", "property": "root", "clicks": 999028, "impressions": 2576273, "ctr": 0.38778033228621345, "position": 4.03, "clicks_change": 0.173714237377345, "impressions_change": 0.13974006416552084, "ctr_diff": 0.011224636932639476, "position_diff": -0.6200000000000001}, {"title": "2026-04_root", "month": "2026-04", "start_date": "2026-04-01", "end_date": "2026-04-30", "property": "root", "clicks": 364544, "impressions": 906446, "ctr": 0.40216846894354435, "position": 3.85, "clicks_change": -0.635101318481564, "impressions_change": -0.6481560766269724, "ctr_diff": 0.014388136657330908, "position_diff": -0.18000000000000016}], "www": [{"title": "2025-10_www", "month": "2025-10", "start_date": "2025-10-01", "end_date": "2025-10-31", "property": "www", "clicks": 2334, "impressions": 506812, "ctr": 0.004605257965478323, "position": 1.99, "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-11_www", "month": "2025-11", "start_date": "2025-11-01", "end_date": "2025-11-30", "property": "www", "clicks": 140535, "impressions": 831171, "ctr": 0.16908073067996837, "position": 3.79, "clicks_change": 59.2120822622108, "impressions_change": 0.6399986582795988, "ctr_diff": 0.16447547271449006, "position_diff": 1.8}, {"title": "2025-12_www", "month": "2025-12", "start_date": "2025-12-01", "end_date": "2025-12-31", "property": "www", "clicks": 574400, "impressions": 1422720, "ctr": 0.4037336932073774, "position": 4.11, "clicks_change": 3.0872380545771514, "impressions_change": 0.7117055335183735, "ctr_diff": 0.23465296252740903, "position_diff": 0.3200000000000003}, {"title": "2026-01_www", "month": "2026-01", "start_date": "2026-01-01", "end_date": "2026-01-31", "property": "www", "clicks": 673978, "impressions": 1584357, "ctr": 0.4253952865421114, "position": 4.46, "clicks_change": 0.1733600278551532, "impressions_change": 0.11361125168690958, "ctr_diff": 0.021661593334733997, "position_diff": 0.34999999999999964}, {"title": "2026-02_www", "month": "2026-02", "start_date": "2026-02-01", "end_date": "2026-02-28", "property": "www", "clicks": 840682, "impressions": 2048045, "ctr": 0.41048023847132264, "position": 4.28, "clicks_change": 0.24734338509565595, "impressions_change": 0.2926663624423031, "ctr_diff": -0.01491504807078875, "position_diff": -0.17999999999999972}, {"title": "2026-03_www", "month": "2026-03", "start_date": "2026-03-01", "end_date": "2026-03-31", "property": "www", "clicks": 992096, "impressions": 2465222, "ctr": 0.40243677851325355, "position": 3.95, "clicks_change": 0.18010853093083948, "impressions_change": 0.20369523130595274, "ctr_diff": -0.008043459958069099, "position_diff": -0.33000000000000007}, {"title": "2026-04_www", "month": "2026-04", "start_date": "2026-04-01", "end_date": "2026-04-30", "property": "www", "clicks": 362716, "impressions": 879567, "ctr": 0.4123801825216271, "position": 3.81, "clicks_change": -0.6343942521691449, "impressions_change": -0.6432098204543039, "ctr_diff": 0.009943404008373569, "position_diff": -0.14000000000000012}], "m": [{"title": "2025-10_m", "month": "2025-10", "start_date": "2025-10-01", "end_date": "2025-10-31", "property": "m", "clicks": 1405, "impressions": 372140, "ctr": 0.0037754608480679314, "position": 2.76, "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-11_m", "month": "2025-11", "start_date": "2025-11-01", "end_date": "2025-11-30", "property": "m", "clicks": 4418, "impressions": 527525, "ctr": 0.00837495853277096, "position": 2.46, "clicks_change": 2.1444839857651243, "impressions_change": 0.41754447251034554, "ctr_diff": 0.004599497684703028, "position_diff": -0.2999999999999998}, {"title": "2025-12_m", "month": "2025-12", "start_date": "2025-12-01", "end_date": "2025-12-31", "property": "m", "clicks": 7010, "impressions": 682710, "ctr": 0.010267902916318789, "position": 2.39, "clicks_change": 0.5866908103214125, "impressions_change": 0.2941756314866594, "ctr_diff": 0.0018929443835478295, "position_diff": -0.06999999999999984}, {"title": "2026-01_m", "month": "2026-01", "start_date": "2026-01-01", "end_date": "2026-01-31", "property": "m", "clicks": 3627, "impressions": 451542, "ctr": 0.00803247538434963, "position": 2.14, "clicks_change": -0.4825962910128388, "impressions_change": -0.33860350661334976, "ctr_diff": -0.0022354275319691596, "position_diff": -0.25}, {"title": "2026-02_m", "month": "2026-02", "start_date": "2026-02-01", "end_date": "2026-02-28", "property": "m", "clicks": 3209, "impressions": 220706, "ctr": 0.014539704403142643, "position": 4.06, "clicks_change": -0.11524676040805074, "impressions_change": -0.5112171182304193, "ctr_diff": 0.006507229018793014, "position_diff": 1.9199999999999995}, {"title": "2026-03_m", "month": "2026-03", "start_date": "2026-03-01", "end_date": "2026-03-31", "property": "m", "clicks": 5057, "impressions": 206672, "ctr": 0.024468723387783543, "position": 4.31, "clicks_change": 0.5758803365534434, "impressions_change": -0.06358685309869237, "ctr_diff": 0.0099290189846409, "position_diff": 0.25}, {"title": "2026-04_m", "month": "2026-04", "start_date": "2026-04-01", "end_date": "2026-04-30", "property": "m", "clicks": 1240, "impressions": 68502, "ctr": 0.018101661265364517, "position": 3.82, "clicks_change": -0.7547953332015028, "impressions_change": -0.6685472632964311, "ctr_diff": -0.006367062122419026, "position_diff": -0.48999999999999977}], "trade": [{"title": "2025-10_trade", "month": "2025-10", "start_date": "2025-10-01", "end_date": "2025-10-31", "property": "trade", "clicks": 8163, "impressions": 590109, "ctr": 0.013833037625252283, "position": 2.9, "clicks_change": null, "impressions_change": null, "ctr_diff": null, "position_diff": null}, {"title": "2025-11_trade", "month": "2025-11", "start_date": "2025-11-01", "end_date": "2025-11-30", "property": "trade", "clicks": 11484, "impressions": 541021, "ctr": 0.02122653279632399, "position": 4.22, "clicks_change": 0.40683572216097025, "impressions_change": -0.08318463199171679, "ctr_diff": 0.007393495171071705, "position_diff": 1.3199999999999998}, {"title": "2025-12_trade", "month": "2025-12", "start_date": "2025-12-01", "end_date": "2025-12-31", "property": "trade", "clicks": 12691, "impressions": 453337, "ctr": 0.027994626514050255, "position": 4.7, "clicks_change": 0.10510275165447579, "impressions_change": -0.162071342886875, "ctr_diff": 0.006768093717726267, "position_diff": 0.4800000000000004}, {"title": "2026-01_trade", "month": "2026-01", "start_date": "2026-01-01", "end_date": "2026-01-31", "property": "trade", "clicks": 12935, "impressions": 446500, "ctr": 0.02896976483762598, "position": 5.48, "clicks_change": 0.01922622330785596, "impressions_change": -0.015081495664373303, "ctr_diff": 0.0009751383235757256, "position_diff": 0.7800000000000002}, {"title": "2026-02_trade", "month": "2026-02", "start_date": "2026-02-01", "end_date": "2026-02-28", "property": "trade", "clicks": 5957, "impressions": 191707, "ctr": 0.031073461062976312, "position": 7.4, "clicks_change": -0.5394665635871666, "impressions_change": -0.5706450167973124, "ctr_diff": 0.002103696225350331, "position_diff": 1.92}, {"title": "2026-03_trade", "month": "2026-03", "start_date": "2026-03-01", "end_date": "2026-03-31", "property": "trade", "clicks": 460, "impressions": 17493, "ctr": 0.026296232778825816, "position": 8.18, "clicks_change": -0.9227799227799228, "impressions_change": -0.9087513757974409, "ctr_diff": -0.004777228284150496, "position_diff": 0.7799999999999994}, {"title": "2026-04_trade", "month": "2026-04", "start_date": "2026-04-01", "end_date": "2026-04-30", "property": "trade", "clicks": 174, "impressions": 4747, "ctr": 0.03665472930271751, "position": 6.65, "clicks_change": -0.6217391304347826, "impressions_change": -0.728634310867204, "ctr_diff": 0.010358496523891692, "position_diff": -1.5299999999999994}]};
+    const chartDataMap = {"root": {"labels": ["2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04"], "clicks": [151105, 208134, 633637, 692329, 851168, 999028, 364544], "impressions": [929408, 1258457, 1793207, 1901622, 2260404, 2576273, 906446], "ctr": [16.26, 16.54, 35.34, 36.41, 37.66, 38.78, 40.22], "position": [5.01, 5.16, 4.71, 4.95, 4.65, 4.03, 3.85]}, "www": {"labels": ["2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04"], "clicks": [2334, 140535, 574400, 673978, 840682, 992096, 362716], "impressions": [506812, 831171, 1422720, 1584357, 2048045, 2465222, 879567], "ctr": [0.46, 16.91, 40.37, 42.54, 41.05, 40.24, 41.24], "position": [1.99, 3.79, 4.11, 4.46, 4.28, 3.95, 3.81]}, "m": {"labels": ["2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04"], "clicks": [1405, 4418, 7010, 3627, 3209, 5057, 1240], "impressions": [372140, 527525, 682710, 451542, 220706, 206672, 68502], "ctr": [0.38, 0.84, 1.03, 0.8, 1.45, 2.45, 1.81], "position": [2.76, 2.46, 2.39, 2.14, 4.06, 4.31, 3.82]}, "trade": {"labels": ["2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04"], "clicks": [8163, 11484, 12691, 12935, 5957, 460, 174], "impressions": [590109, 541021, 453337, 446500, 191707, 17493, 4747], "ctr": [1.38, 2.12, 2.8, 2.9, 3.11, 2.63, 3.67], "position": [2.9, 4.22, 4.7, 5.48, 7.4, 8.18, 6.65]}};
+
+    let currentProperty = "root";
+    let clicksChart = null;
+    let ctrPositionChart = null;
+
+    function fmtInt(v) {
+      if (v === null || v === undefined) return "-";
+      return Number(v).toLocaleString("ko-KR");
+    }
+
+    function fmtPct(v) {
+      if (v === null || v === undefined) return "-";
+      return (Number(v) * 100).toFixed(1) + "%";
+    }
+
+    function fmtNum(v, digits = 1) {
+      if (v === null || v === undefined) return "-";
+      return Number(v).toFixed(digits);
+    }
+
+    function deltaClass(value, reverse = false) {
+      if (value === null || value === undefined) return "neutral";
+
+      if (!reverse) {
+        if (value > 0) return "up";
+        if (value < 0) return "down";
+      } else {
+        if (value < 0) return "up";
+        if (value > 0) return "down";
+      }
+      return "neutral";
+    }
+
+    function fmtPctChange(v) {
+      if (v === null || v === undefined) return "—";
+      if (v > 0) return "▲ " + Math.abs(v * 100).toFixed(1) + "%";
+      if (v < 0) return "▼ " + Math.abs(v * 100).toFixed(1) + "%";
+      return "0.0%";
+    }
+
+    function fmtCtrDiff(v) {
+      if (v === null || v === undefined) return "—";
+      if (v > 0) return "▲ " + Math.abs(v * 100).toFixed(1) + "%p";
+      if (v < 0) return "▼ " + Math.abs(v * 100).toFixed(1) + "%p";
+      return "0.0%p";
+    }
+
+    function fmtPositionDiff(v) {
+      if (v === null || v === undefined) return "—";
+      if (v < 0) return "▲ 개선 " + Math.abs(v).toFixed(1);
+      if (v > 0) return "▼ 악화 " + Math.abs(v).toFixed(1);
+      return "유지";
+    }
+
+    function buildSummaryText(row) {
+      if (!row) return "데이터가 없습니다.";
+
+      const parts = [];
+
+      if (row.clicks_change !== null && row.clicks_change !== undefined) {
+        parts.push(row.clicks_change > 0 ? "클릭 증가" : row.clicks_change < 0 ? "클릭 감소" : "클릭 유지");
+      }
+      if (row.impressions_change !== null && row.impressions_change !== undefined) {
+        parts.push(row.impressions_change > 0 ? "노출 확대" : row.impressions_change < 0 ? "노출 감소" : "노출 유지");
+      }
+      if (row.ctr_diff !== null && row.ctr_diff !== undefined) {
+        parts.push(row.ctr_diff > 0 ? "CTR 상승" : row.ctr_diff < 0 ? "CTR 하락" : "CTR 유지");
+      }
+      if (row.position_diff !== null && row.position_diff !== undefined) {
+        parts.push(row.position_diff < 0 ? "평균 순위 개선" : row.position_diff > 0 ? "평균 순위 악화" : "평균 순위 유지");
+      }
+
+      return row.month + " 기준 " + parts.join(" · ");
+    }
+
+    function renderCards(rows) {
+      const latest = rows.length ? rows[rows.length - 1] : null;
+
+      document.getElementById("report-month").textContent = latest ? latest.month : "-";
+      document.getElementById("report-period").textContent = latest ? (latest.start_date + " ~ " + latest.end_date) : "-";
+
+      document.getElementById("clicks-label").textContent = latest ? latest.month + " 클릭" : "클릭";
+      document.getElementById("clicks-value").textContent = latest ? fmtInt(latest.clicks) : "-";
+      document.getElementById("clicks-delta").textContent = latest ? fmtPctChange(latest.clicks_change) : "-";
+      document.getElementById("clicks-delta").className = "card-delta " + (latest ? deltaClass(latest.clicks_change) : "neutral");
+
+      document.getElementById("impressions-label").textContent = latest ? latest.month + " 노출" : "노출";
+      document.getElementById("impressions-value").textContent = latest ? fmtInt(latest.impressions) : "-";
+      document.getElementById("impressions-delta").textContent = latest ? fmtPctChange(latest.impressions_change) : "-";
+      document.getElementById("impressions-delta").className = "card-delta " + (latest ? deltaClass(latest.impressions_change) : "neutral");
+
+      document.getElementById("ctr-label").textContent = latest ? latest.month + " CTR" : "CTR";
+      document.getElementById("ctr-value").textContent = latest ? fmtPct(latest.ctr) : "-";
+      document.getElementById("ctr-delta").textContent = latest ? fmtCtrDiff(latest.ctr_diff) : "-";
+      document.getElementById("ctr-delta").className = "card-delta " + (latest ? deltaClass(latest.ctr_diff) : "neutral");
+
+      document.getElementById("position-label").textContent = latest ? latest.month + " 평균 순위" : "평균 순위";
+      document.getElementById("position-value").textContent = latest ? fmtNum(latest.position, 1) : "-";
+      document.getElementById("position-delta").textContent = latest ? fmtPositionDiff(latest.position_diff) : "-";
+      document.getElementById("position-delta").className = "card-delta " + (latest ? deltaClass(latest.position_diff, true) : "neutral");
+
+      document.getElementById("summary-text").textContent = buildSummaryText(latest);
+    }
+
+    function renderTable(rows) {
+      const tbody = document.getElementById("detail-tbody");
+      tbody.innerHTML = "";
+
+      const sorted = [...rows].sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+
+      sorted.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.month}</td>
+          <td>${row.start_date}</td>
+          <td>${row.end_date}</td>
+          <td>${fmtInt(row.clicks)}</td>
+          <td>${fmtInt(row.impressions)}</td>
+          <td>${fmtPct(row.ctr)}</td>
+          <td>${fmtNum(row.position, 1)}</td>
+          <td class="${deltaClass(row.clicks_change)}">${fmtPctChange(row.clicks_change)}</td>
+          <td class="${deltaClass(row.impressions_change)}">${fmtPctChange(row.impressions_change)}</td>
+          <td class="${deltaClass(row.ctr_diff)}">${fmtCtrDiff(row.ctr_diff)}</td>
+          <td class="${deltaClass(row.position_diff, true)}">${fmtPositionDiff(row.position_diff)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function destroyCharts() {
+      if (clicksChart) clicksChart.destroy();
+      if (ctrPositionChart) ctrPositionChart.destroy();
+    }
+
+    function commonChartOptions() {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 8,
+            right: 8,
+            bottom: 8,
+            left: 8
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: "#ffffff",
+              boxWidth: 10,
+              boxHeight: 6,
+              padding: 8,
+              font: {
+                size: 10
+              }
+            }
+          }
+        }
+      };
+    }
+
+    function renderCharts(propertyName) {
+      destroyCharts();
+
+      const cData = chartDataMap[propertyName] || { labels: [], clicks: [], impressions: [], ctr: [], position: [] };
+
+      const ctx1 = document.getElementById("chartClicks").getContext("2d");
+      clicksChart = new Chart(ctx1, {
+        type: "bar",
+        data: {
+          labels: cData.labels,
+          datasets: [
+            {
+              type: "bar",
+              label: "Clicks",
+              data: cData.clicks,
+              backgroundColor: "rgba(96, 165, 250, 0.55)",
+              borderColor: "rgba(96, 165, 250, 1)",
+              borderWidth: 1,
+              yAxisID: "y"
+            },
+            {
+              type: "line",
+              label: "Impressions",
+              data: cData.impressions,
+              borderColor: "rgba(244, 114, 182, 1)",
+              backgroundColor: "rgba(244, 114, 182, 0.12)",
+              tension: 0.3,
+              yAxisID: "y1"
+            }
+          ]
+        },
+        options: {
+          ...commonChartOptions(),
+          scales: {
+            x: {
+              ticks: {
+                color: "#cbd5e1",
+                autoSkip: true,
+                maxTicksLimit: 4,
+                maxRotation: 0,
+                minRotation: 0,
+                font: { size: 9 }
+              },
+              grid: { color: "rgba(255,255,255,0.05)" }
+            },
+            y: {
+              position: "left",
+              ticks: {
+                color: "#cbd5e1",
+                font: { size: 10 }
+              },
+              grid: { color: "rgba(255,255,255,0.05)" },
+              title: {
+                display: false
+              }
+            },
+            y1: {
+              position: "right",
+              ticks: {
+                color: "#cbd5e1",
+                font: { size: 10 }
+              },
+              grid: { drawOnChartArea: false },
+              title: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+
+      const ctx2 = document.getElementById("chartCtrPosition").getContext("2d");
+      ctrPositionChart = new Chart(ctx2, {
+        type: "line",
+        data: {
+          labels: cData.labels,
+          datasets: [
+            {
+              label: "CTR (%)",
+              data: cData.ctr,
+              borderColor: "rgba(59, 130, 246, 1)",
+              backgroundColor: "rgba(59, 130, 246, 0.15)",
+              tension: 0.3,
+              yAxisID: "y"
+            },
+            {
+              label: "Position",
+              data: cData.position,
+              borderColor: "rgba(244, 63, 94, 1)",
+              backgroundColor: "rgba(244, 63, 94, 0.12)",
+              tension: 0.3,
+              yAxisID: "y1"
+            }
+          ]
+        },
+        options: {
+          ...commonChartOptions(),
+          scales: {
+            x: {
+              ticks: {
+                color: "#cbd5e1",
+                autoSkip: true,
+                maxTicksLimit: 4,
+                maxRotation: 0,
+                minRotation: 0,
+                font: { size: 9 }
+              },
+              grid: { color: "rgba(255,255,255,0.05)" }
+            },
+            y: {
+              position: "left",
+              ticks: {
+                color: "#cbd5e1",
+                font: { size: 10 }
+              },
+              grid: { color: "rgba(255,255,255,0.05)" },
+              title: {
+                display: false
+              }
+            },
+            y1: {
+              position: "right",
+              reverse: true,
+              ticks: {
+                color: "#cbd5e1",
+                font: { size: 10 }
+              },
+              grid: { drawOnChartArea: false },
+              title: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderProperty(propertyName) {
+      const completedRows = monthlyDataCompleted[propertyName] || [];
+      const allRows = monthlyDataAll[propertyName] || [];
+
+      document.querySelectorAll(".property-tab").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.property === propertyName);
+      });
+
+      renderCards(completedRows);
+      renderTable(allRows);
+      renderCharts(propertyName);
+    }
+
+    document.querySelectorAll(".property-tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        renderProperty(btn.dataset.property);
+      });
+    });
+
+    renderProperty("root");
+  </script>
+</body>
+</html>
